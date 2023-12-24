@@ -1,0 +1,73 @@
+{
+  "name": "@unisat/wallet-sdk",
+  "version": "1.0.0",
+  "description": "UniSat Wallet SDK",
+  "keywords": [
+    "bitcoin",
+    "keyring",
+    "unisat"
+  ],
+  "homepage": "https://github.com/unisat-wallet/wallet-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/unisat-wallet/wallet-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/unisat-wallet/wallet-sdk.git"
+  },
+  "author": "cybersinsloth",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "/es",
+    "/lib"
+  ],
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "rimraf lib && cross-env BABEL_ENV=cjs gulp build",
+    "build:esm": "rimraf es && cross-env BABEL_ENV=esm gulp build",
+    "build:typed": "tsc --declaration --emitDeclarationOnly --noEmit false",
+    "test": "mocha -r ts-node/register test/**/*.ts --timeout 300000",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@bitcoinerlab/secp256k1": "^1.0.5",
+    "bignumber.js": "^9.1.2",
+    "bitcoinjs-lib": "^6.1.0",
+    "bitcore-lib": "^10.0.0",
+    "ecpair": "^2.1.0",
+    "bip39": "^3.1.0",
+    "hdkey": "^2.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.16.7",
+    "@babel/plugin-transform-runtime": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
+    "@types/chai": "^4.2.20",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^16.11.10",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "babel-loader": "^8.2.3",
+    "chai": "^4.3.4",
+    "clean-webpack-plugin": "^4.0.0",
+    "cross-env": "^7.0.3",
+    "glob": "^7.1.7",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-typescript": "*",
+    "mocha": "^9.0.2",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.3",
+    "watch": "^1.0.2",
+    "watchify": "^4.0.0",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
