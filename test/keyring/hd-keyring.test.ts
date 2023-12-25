@@ -11,8 +11,7 @@ const secondAccount =
 describe("bitcoin-hd-keyring", () => {
   describe("constructor", () => {
     it("constructs with a typeof string mnemonic", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -43,8 +42,7 @@ describe("bitcoin-hd-keyring", () => {
     });
 
     it("constructor + generateRandomMnemonic", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -78,8 +76,7 @@ describe("bitcoin-hd-keyring", () => {
 
   describe("#Change hdPath", () => {
     it("pass m/44", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
         hdPath: "m/44'/0'/0'/0",
@@ -93,8 +90,7 @@ describe("bitcoin-hd-keyring", () => {
     });
 
     it("pass m/84", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
         hdPath: "m/84'/0'/0'/0",
@@ -108,8 +104,7 @@ describe("bitcoin-hd-keyring", () => {
     });
 
     it("change m/44 to m/84", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
         hdPath: "m/44'/0'/0'/0",
@@ -124,8 +119,7 @@ describe("bitcoin-hd-keyring", () => {
     });
 
     it("getAccountByHdPath", async () => {
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
         hdPath: "m/44'/0'/0'/0",
@@ -147,8 +141,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "0243906ea96ce2680826bfd906cdfcbb70cf2764e469518ba000f0aeb76a6b025b";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -166,8 +159,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "02dea555ea75823e76c2b7589bdbc601ef4eb26742be5f096bc31319367873101b";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -185,8 +177,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "03d1b536f6f18eb1ffea8227987a1a80072a316c3d0bfedc2af01b21ece5b7492e";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -204,8 +195,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "031c90977662ae1c7ab0082940307a0a82d34bdba9c26b38404402676e99484b9e";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -223,8 +213,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "03e514ed9ec10e4df0b134d0728abf5746ace056230e12d3e9cce8fe669d74a532";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         mnemonic: sampleMnemonic,
         activeIndexes: [0, 1],
       });
@@ -244,8 +233,7 @@ describe("bitcoin-hd-keyring", () => {
       const secondAccount =
         "0243906ea96ce2680826bfd906cdfcbb70cf2764e469518ba000f0aeb76a6b025b";
 
-      const keyring = new HdKeyring();
-      await keyring.deserialize({
+      const keyring = new HdKeyring({
         xpriv: sampleXpriv,
         activeIndexes: [0, 1],
       });

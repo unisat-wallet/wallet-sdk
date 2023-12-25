@@ -34,8 +34,11 @@ export class HdKeyring extends SimpleKeyring {
   perPage = 5;
 
   /* PUBLIC METHODS */
-  constructor() {
+  constructor(opts?: DeserializeOption) {
     super(null);
+    if (opts) {
+      this.deserialize(opts);
+    }
   }
 
   async serialize(): Promise<DeserializeOption> {
@@ -67,7 +70,7 @@ export class HdKeyring extends SimpleKeyring {
     }
 
     if (opts.mnemonic) {
-      await this.initFromMnemonic(opts.mnemonic);
+      this.initFromMnemonic(opts.mnemonic);
     } else if (opts.xpriv) {
       this.initFromXpriv(opts.xpriv);
     }
@@ -91,7 +94,7 @@ export class HdKeyring extends SimpleKeyring {
     this.root = this.hdWallet;
   }
 
-  async initFromMnemonic(mnemonic: string) {
+  initFromMnemonic(mnemonic: string) {
     if (this.root) {
       throw new Error(
         "Btc-Hd-Keyring: Secret recovery phrase already provided"
@@ -101,7 +104,7 @@ export class HdKeyring extends SimpleKeyring {
     this.mnemonic = mnemonic;
     this._index2wallet = {};
 
-    const seed = await bip39.mnemonicToSeed(mnemonic, this.passphrase);
+    const seed = bip39.mnemonicToSeedSync(mnemonic, this.passphrase);
     this.hdWallet = hdkey.fromMasterSeed(seed);
     this.root = this.hdWallet.derive(this.hdPath);
   }

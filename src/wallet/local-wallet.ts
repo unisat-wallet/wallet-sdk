@@ -50,8 +50,7 @@ export class LocalWallet implements AbstractWallet {
     passPhrase?: string,
     hdPath?: string
   ) {
-    const keyring = new HdKeyring();
-    keyring.deserialize({ mnemonic, hdPath, passphrase: passPhrase });
+    const keyring = new HdKeyring({ mnemonic, hdPath, passphrase: passPhrase });
     const keyPair = keyring.getAccounts()[0];
     const wallet = new LocalWallet(
       keyPair.privateKey.toString("hex"),
