@@ -181,14 +181,19 @@ export async function dummySendAllBTC({
     networkType: wallet.networkType,
   });
   await wallet.signPsbt(psbt, { autoFinalized: true, toSignInputs });
-  const txid = psbt.extractTransaction(true).getId();
+
   const inputCount = psbt.txInputs.length;
   const outputCount = psbt.txOutputs.length;
   if (dump) {
     printPsbt(psbt);
   }
 
-  return { psbt, txid, inputCount, outputCount, feeRate: psbt.getFeeRate() };
+  const fee = psbt.getFee();
+  const tx = psbt.extractTransaction(true);
+  const virtualSize = tx.virtualSize();
+  const txid = tx.getId();
+  const finalFeeRate = parseFloat((fee / virtualSize).toFixed(1));
+  return { psbt, txid, inputCount, outputCount, feeRate: finalFeeRate };
 }
 
 /**
