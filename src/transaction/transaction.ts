@@ -278,7 +278,8 @@ export class Transaction {
           index: this.inputs.length - 1,
           publicKey: v.pubkey,
         });
-        this._cacheNetworkFee += utxoHelper.getAddedVirtualSize(v.addressType);
+        this._cacheNetworkFee +=
+          utxoHelper.getAddedVirtualSize(v.addressType) * this.feeRate;
       });
       this._cacheBtcUtxos = remainingUtxos;
       this.selectBtcUtxos();
@@ -300,7 +301,7 @@ export class Transaction {
       const dummyBtcUtxoSize = utxoHelper.getAddedVirtualSize(
         dummyBtcUtxo.addressType
       );
-      this._cacheNetworkFee = networkFee - dummyBtcUtxoSize;
+      this._cacheNetworkFee = networkFee - dummyBtcUtxoSize * this.feeRate;
 
       this.removeLastInput();
 

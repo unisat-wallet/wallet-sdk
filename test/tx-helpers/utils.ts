@@ -101,7 +101,7 @@ export function genDummyAtomicalsNFT(): {
 /**
  * For P2PKH, the signature length is not fixed, so we need to handle it specially
  */
-export async function expectFeeRate(
+export function expectFeeRate(
   addressType: AddressType,
   feeRateA: number,
   feeRateB: number
