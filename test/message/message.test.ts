@@ -92,4 +92,18 @@ describe("verifyMessage", function () {
     );
     expect(result).eq(true);
   });
+
+  it("same with unisat wallet 1.1.33", async function () {
+    const message = "hello";
+    const wallet = new LocalWallet(
+      "L3VFeEujGtevx9w18HD1fhRbCH67Az2dpCymeRE1SoPK6XQtaN2k",
+      AddressType.P2TR,
+      NetworkType.MAINNET
+    );
+    const signature_now = await wallet.signMessage(message, "bip322-simple");
+    const signature_old =
+      "AUCNuph9ZfpmxxVZozX4jVUYDXU3rR481/id9sQRUYTwdYWiLUE1cftTK2chYJENB0eYCLPykIC4Zi+U4DQ9zqew";
+
+    expect(signature_now).eq(signature_old);
+  });
 });

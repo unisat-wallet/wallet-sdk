@@ -39,7 +39,7 @@
     "bitcore-lib": "^10.0.0",
     "ecpair": "^2.1.0",
     "hdkey": "^2.1.0",
-    "tiny-secp256k1": "^2.2.3"
+    "tiny-secp256k1": "=2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
