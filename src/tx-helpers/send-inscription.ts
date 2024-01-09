@@ -13,6 +13,7 @@ export async function sendInscription({
   feeRate,
   outputValue,
   enableRBF = true,
+  enableMixed = false,
 }: {
   assetUtxo: UnspentOutput;
   btcUtxos: UnspentOutput[];
@@ -22,6 +23,7 @@ export async function sendInscription({
   feeRate: number;
   outputValue: number;
   enableRBF?: boolean;
+  enableMixed?: boolean;
 }) {
   if (utxoHelper.hasAnyAssets(btcUtxos)) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
@@ -31,11 +33,15 @@ export async function sendInscription({
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
   }
 
-  if (assetUtxo.inscriptions.length !== 1) {
+  if (!enableMixed && assetUtxo.inscriptions.length !== 1) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
   }
 
-  if (outputValue - 1 < assetUtxo.inscriptions[0].offset) {
+  const maxOffset = assetUtxo.inscriptions.reduce((pre, cur) => {
+    return Math.max(pre, cur.offset);
+  }, 0);
+
+  if (outputValue - 1 < maxOffset) {
     throw new WalletUtilsError(ErrorCodes.ASSET_MAYBE_LOST);
   }
 

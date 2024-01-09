@@ -53,11 +53,15 @@ export function genDummyUtxo(
       type: "NFT" | "FT";
       ticker?: string;
     }[];
-  }
+  },
+  txid?: string,
+  vout?: number
 ): UnspentOutput {
   return {
-    txid: "0000000000000000000000000000000000000000000000000000000000000000",
-    vout: dummyUtxoIndex++,
+    txid:
+      txid ||
+      "0000000000000000000000000000000000000000000000000000000000000000",
+    vout: vout !== undefined ? vout : dummyUtxoIndex++,
     satoshis: satoshis,
     scriptPk: wallet.scriptPk,
     addressType: wallet.addressType,
@@ -209,6 +213,7 @@ export async function dummySendInscription({
   outputValue,
   dump,
   enableRBF,
+  enableMixed,
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -219,6 +224,7 @@ export async function dummySendInscription({
   toAddress: string;
   dump?: boolean;
   enableRBF?: boolean;
+  enableMixed?: boolean;
 }) {
   const { psbt, toSignInputs } = await sendInscription({
     assetUtxo,
@@ -229,6 +235,7 @@ export async function dummySendInscription({
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
     enableRBF,
+    enableMixed,
   });
   const btcToSignInputs = toSignInputs.filter(
     (v) => v.publicKey === btcWallet.pubkey

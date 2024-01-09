@@ -17,11 +17,11 @@ describe("sendInscription", () => {
 
   const testAddressTypes = [
     AddressType.P2TR,
-    // AddressType.P2SH_P2WPKH,
-    // AddressType.P2PKH,
-    // AddressType.P2SH_P2WPKH,
-    // AddressType.M44_P2TR, // deprecated
-    // AddressType.M44_P2WPKH, // deprecated
+    AddressType.P2SH_P2WPKH,
+    AddressType.P2PKH,
+    AddressType.P2SH_P2WPKH,
+    AddressType.M44_P2TR, // deprecated
+    AddressType.M44_P2WPKH, // deprecated
   ];
   testAddressTypes.forEach((addressType) => {
     const fromBtcWallet = LocalWallet.fromRandom(
@@ -121,6 +121,76 @@ describe("sendInscription", () => {
             }),
             outputValue: 1000,
             feeRate: 1,
+          });
+        } catch (e) {
+          error = e;
+        }
+        expect(error.code).eq(ErrorCodes.ASSET_MAYBE_LOST);
+      });
+
+      it("multiple inscriptions but not enableMixed", async function () {
+        let error: any = {};
+        try {
+          const ret = await dummySendInscription({
+            toAddress: toWallet.address,
+            btcWallet: fromBtcWallet,
+            btcUtxos: genDummyUtxos(fromBtcWallet, [10000]),
+            assetWallet: fromAssetWallet,
+            assetUtxo: genDummyUtxo(fromAssetWallet, 10000, {
+              inscriptions: [
+                { inscriptionId: "001", offset: 1000 },
+                { inscriptionId: "002", offset: 1001 },
+              ],
+            }),
+            outputValue: 1001,
+            feeRate: 1,
+          });
+        } catch (e) {
+          error = e;
+        }
+        expect(error.code).eq(ErrorCodes.NOT_SAFE_UTXOS);
+      });
+    });
+
+    describe("send mixed inscriptions", function () {
+      it("safe outputvalue", async function () {
+        const ret = await dummySendInscription({
+          toAddress: toWallet.address,
+          btcWallet: fromBtcWallet,
+          btcUtxos: genDummyUtxos(fromBtcWallet, [10000]),
+          assetWallet: fromAssetWallet,
+          assetUtxo: genDummyUtxo(fromAssetWallet, 10000, {
+            inscriptions: [
+              { inscriptionId: "001", offset: 0 },
+              { inscriptionId: "002", offset: 330 },
+            ],
+          }),
+          outputValue: 331,
+          feeRate: 1,
+          enableMixed: true,
+        });
+        expect(ret.inputCount).eq(1);
+        expect(ret.outputCount).eq(2);
+        expectFeeRate(addressType, ret.feeRate, 1);
+      });
+
+      it("not safe outputvalue", async function () {
+        let error: any = {};
+        try {
+          const ret = await dummySendInscription({
+            toAddress: toWallet.address,
+            btcWallet: fromBtcWallet,
+            btcUtxos: genDummyUtxos(fromBtcWallet, [10000]),
+            assetWallet: fromAssetWallet,
+            assetUtxo: genDummyUtxo(fromAssetWallet, 10000, {
+              inscriptions: [
+                { inscriptionId: "001", offset: 0 },
+                { inscriptionId: "002", offset: 330 },
+              ],
+            }),
+            outputValue: 330,
+            feeRate: 1,
+            enableMixed: true,
           });
         } catch (e) {
           error = e;
