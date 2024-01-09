@@ -95,7 +95,7 @@ describe("sendInscriptions", () => {
     });
 
     describe("select UTXO", function () {
-      it("total 4 UTXO only use 2", async function () {
+      it("total 2 BTC UTXO only use 1", async function () {
         const ret = await dummySendInscriptions({
           toAddress: toWallet.address,
           assetWallet: fromAssetWallet,
@@ -109,11 +109,13 @@ describe("sendInscriptions", () => {
           ],
           btcWallet: fromBtcWallet,
           btcUtxos: [
-            genDummyUtxo(fromBtcWallet, 1000),
-            genDummyUtxo(fromBtcWallet, 1000),
+            genDummyUtxo(fromBtcWallet, 10000),
+            genDummyUtxo(fromBtcWallet, 10000),
           ],
           feeRate: 1,
         });
+        expect(ret.inputCount).eq(3);
+        expect(ret.outputCount).eq(3);
         expectFeeRate(addressType, ret.feeRate, 1);
       });
     });
