@@ -43,17 +43,17 @@ export class LocalWallet implements AbstractWallet {
     this.scriptPk = publicKeyToScriptPk(this.pubkey, addressType, networkType);
   }
 
-  static fromMnemonic(
+  static async fromMnemonic(
     addressType: AddressType,
     networkType: NetworkType,
     mnemonic: string,
     passPhrase?: string,
     hdPath?: string
   ) {
-    const keyring = new HdKeyring({ mnemonic, hdPath, passphrase: passPhrase });
-    const keyPair = keyring.getAccounts()[0];
+    const keyring = new HdKeyring({ mnemonic, hdPath, passphrase: passPhrase, activeIndexes: [0], network: toPsbtNetwork(networkType) });
+    const wif = await keyring.getAccountWIF(0);
     const wallet = new LocalWallet(
-      keyPair.privateKey.toString("hex"),
+      wif,
       addressType,
       networkType
     );

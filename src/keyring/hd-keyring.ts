@@ -13,6 +13,7 @@ interface DeserializeOption {
   xpriv?: string;
   activeIndexes?: number[];
   passphrase?: string;
+  network?: bitcoin.Network;
 }
 
 export class HdKeyring extends SimpleKeyring {
@@ -48,6 +49,7 @@ export class HdKeyring extends SimpleKeyring {
       activeIndexes: this.activeIndexes,
       hdPath: this.hdPath,
       passphrase: this.passphrase,
+      network: this.network,
     };
   }
 
@@ -64,6 +66,7 @@ export class HdKeyring extends SimpleKeyring {
     this.root = null;
 
     this.hdPath = opts.hdPath || hdPathString;
+    this.network = opts.network || bitcoin.networks.bitcoin;
 
     if (opts.passphrase) {
       this.passphrase = opts.passphrase;
@@ -225,8 +228,15 @@ export class HdKeyring extends SimpleKeyring {
 
   async getAccounts() {
     return this.wallets.map((w) => {
-      return w.publicKey.toString("hex");
+      return w.toWIF();
     });
+  }
+
+  getAccountWIF(index: number){
+    if (index < 0 || index >= this.wallets.length) {
+      throw new Error("index of wallet error!");
+    }
+    return this.wallets[index].toWIF();
   }
 
   getIndexByAddress(address: string) {
@@ -241,7 +251,7 @@ export class HdKeyring extends SimpleKeyring {
   private _addressFromIndex(i: number): [string, ECPairInterface] {
     if (!this._index2wallet[i]) {
       const child = this.root!.deriveChild(i);
-      const ecpair = ECPair.fromPrivateKey(child.privateKey);
+      const ecpair = ECPair.fromPrivateKey(child.privateKey, {network: this.network});
       const address = ecpair.publicKey.toString("hex");
       this._index2wallet[i] = [address, ecpair];
     }
