@@ -1,4 +1,5 @@
 import { getAddressType } from "../address";
+import { NetworkType } from "../network";
 import { AddressType, UnspentOutput } from "../types";
 
 function hasInscription(utxos: UnspentOutput[]) {
@@ -86,10 +87,13 @@ function getAddedVirtualSize(addressType: AddressType) {
 
 export function getUtxoDust(addressType: AddressType) {
   if (
-    addressType === AddressType.P2TR ||
-    addressType === AddressType.M44_P2TR ||
     addressType === AddressType.P2WPKH ||
     addressType === AddressType.M44_P2WPKH
+  ) {
+    return 294;
+  } else if (
+    addressType === AddressType.P2TR ||
+    addressType === AddressType.M44_P2TR
   ) {
     return 330;
   } else {
@@ -97,8 +101,11 @@ export function getUtxoDust(addressType: AddressType) {
   }
 }
 
-export function getAddressUtxoDust(address: string) {
-  const addressType = getAddressType(address);
+export function getAddressUtxoDust(
+  address: string,
+  networkType: NetworkType = NetworkType.MAINNET
+) {
+  const addressType = getAddressType(address, networkType);
   return getUtxoDust(addressType);
 }
 
