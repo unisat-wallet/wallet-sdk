@@ -50,10 +50,18 @@ export class LocalWallet implements AbstractWallet {
     passPhrase?: string,
     hdPath?: string
   ) {
-    const keyring = new HdKeyring({ mnemonic, hdPath, passphrase: passPhrase });
-    const keyPair = keyring.getAccounts()[0];
+    const keyring = new HdKeyring({
+      mnemonic,
+      hdPath,
+      passphrase: passPhrase,
+      activeIndexes: [0],
+    });
+
+    const _wallet = keyring.wallets[0];
+    _wallet.network = toPsbtNetwork(networkType);
+
     const wallet = new LocalWallet(
-      keyPair.privateKey.toString("hex"),
+      keyring.wallets[0].toWIF(),
       addressType,
       networkType
     );

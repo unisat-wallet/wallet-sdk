@@ -131,7 +131,9 @@ export class HdKeyring extends SimpleKeyring {
     }
     const root = this.hdWallet.derive(hdPath);
     const child = root!.deriveChild(index);
-    const ecpair = ECPair.fromPrivateKey(child.privateKey);
+    const ecpair = ECPair.fromPrivateKey(child.privateKey, {
+      network: this.network,
+    });
     const address = ecpair.publicKey.toString("hex");
     return address;
   }
@@ -241,7 +243,9 @@ export class HdKeyring extends SimpleKeyring {
   private _addressFromIndex(i: number): [string, ECPairInterface] {
     if (!this._index2wallet[i]) {
       const child = this.root!.deriveChild(i);
-      const ecpair = ECPair.fromPrivateKey(child.privateKey);
+      const ecpair = ECPair.fromPrivateKey(child.privateKey, {
+        network: this.network,
+      });
       const address = ecpair.publicKey.toString("hex");
       this._index2wallet[i] = [address, ecpair];
     }
