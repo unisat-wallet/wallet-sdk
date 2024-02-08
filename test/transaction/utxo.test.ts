@@ -134,45 +134,53 @@ describe("utxo", () => {
     expect(utxoHelper.getUtxoDust(AddressType.P2WSH)).to.eq(546);
   });
 
-  const networks = [NetworkType.MAINNET, NetworkType.TESTNET];
+  const networks = [
+    NetworkType.MAINNET,
+    NetworkType.TESTNET,
+    // NetworkType.REGTEST, not support
+  ];
+  const networkNames = ["MAINNET", "TESTNET", "REGTEST"];
   networks.forEach((networkType) => {
-    describe("getAddressUtxoDust networkType: " + networkType, function () {
-      it("should return dust for P2TR", function () {
-        expect(
-          utxoHelper.getAddressUtxoDust(
-            LocalWallet.fromRandom(AddressType.P2TR, networkType).address,
-            networkType
-          )
-        ).to.eq(330);
-      });
+    describe(
+      "getAddressUtxoDust networkType: " + networkNames[networkType],
+      function () {
+        it("should return dust for P2TR", function () {
+          expect(
+            utxoHelper.getAddressUtxoDust(
+              LocalWallet.fromRandom(AddressType.P2TR, networkType).address,
+              networkType
+            )
+          ).to.eq(330);
+        });
 
-      it("should return dust for P2WPKH", function () {
-        expect(
-          utxoHelper.getAddressUtxoDust(
-            LocalWallet.fromRandom(AddressType.P2WPKH, networkType).address,
-            networkType
-          )
-        ).to.eq(294);
-      });
+        it("should return dust for P2WPKH", function () {
+          expect(
+            utxoHelper.getAddressUtxoDust(
+              LocalWallet.fromRandom(AddressType.P2WPKH, networkType).address,
+              networkType
+            )
+          ).to.eq(294);
+        });
 
-      it("should return dust for P2PKH", function () {
-        expect(
-          utxoHelper.getAddressUtxoDust(
-            LocalWallet.fromRandom(AddressType.P2PKH, networkType).address,
-            networkType
-          )
-        ).to.eq(546);
-      });
+        it("should return dust for P2PKH", function () {
+          expect(
+            utxoHelper.getAddressUtxoDust(
+              LocalWallet.fromRandom(AddressType.P2PKH, networkType).address,
+              networkType
+            )
+          ).to.eq(546);
+        });
 
-      it("should return dust for P2SH_P2WPKH", function () {
-        expect(
-          utxoHelper.getAddressUtxoDust(
-            LocalWallet.fromRandom(AddressType.P2SH_P2WPKH, networkType)
-              .address,
-            networkType
-          )
-        ).to.eq(546);
-      });
-    });
+        it("should return dust for P2SH_P2WPKH", function () {
+          expect(
+            utxoHelper.getAddressUtxoDust(
+              LocalWallet.fromRandom(AddressType.P2SH_P2WPKH, networkType)
+                .address,
+              networkType
+            )
+          ).to.eq(546);
+        });
+      }
+    );
   });
 });

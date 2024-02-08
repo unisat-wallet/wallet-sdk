@@ -1,11 +1,13 @@
 import { expect } from "chai";
 import { AddressType } from "../../src";
 import {
+  decodeAddress,
   getAddressType,
   isValidAddress,
   publicKeyToAddress,
 } from "../../src/address";
 import { NetworkType } from "../../src/network";
+import { LocalWallet } from "../../src/wallet";
 
 const p2wpkh_data = {
   pubkey: "02b602ad190efb7b4f520068e3f8ecf573823d9e2557c5229231b4e14b79bbc0d8",
@@ -191,6 +193,39 @@ describe("address", function () {
     expect(getAddressType(p2sh_data.testnet_address, NetworkType.TESTNET)).eq(
       AddressType.P2SH_P2WPKH,
       "testnet address type should be p2sh"
+    );
+  });
+
+  const networks = [
+    NetworkType.MAINNET,
+    NetworkType.TESTNET,
+    // NetworkType.REGTEST, not support
+  ];
+  const networkNames = ["MAINNET", "TESTNET", "REGTEST"];
+  networks.forEach((networkType) => {
+    describe(
+      "decodeAddress networkType: " + networkNames[networkType],
+      function () {
+        const addressTypes = [
+          AddressType.P2TR,
+          AddressType.P2WPKH,
+          AddressType.P2PKH,
+          AddressType.P2SH_P2WPKH,
+        ];
+        const dusts = [330, 294, 546, 546];
+        addressTypes.forEach((addressType, index) => {
+          it(`should return ${networkNames[networkType]}`, function () {
+            const address = LocalWallet.fromRandom(
+              addressType,
+              networkType
+            ).address;
+            const addressInfo = decodeAddress(address);
+            expect(addressInfo.networkType).to.eq(networkType);
+            expect(addressInfo.addressType).to.eq(addressType);
+            expect(addressInfo.dust).to.eq(dusts[index]);
+          });
+        });
+      }
     );
   });
 });

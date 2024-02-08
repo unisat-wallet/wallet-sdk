@@ -1,4 +1,4 @@
-import { getAddressType } from "../address";
+import { decodeAddress } from "../address";
 import { NetworkType } from "../network";
 import { AddressType, UnspentOutput } from "../types";
 
@@ -101,12 +101,12 @@ export function getUtxoDust(addressType: AddressType) {
   }
 }
 
+// deprecated
 export function getAddressUtxoDust(
   address: string,
   networkType: NetworkType = NetworkType.MAINNET
 ) {
-  const addressType = getAddressType(address, networkType);
-  return getUtxoDust(addressType);
+  return decodeAddress(address).dust;
 }
 
 export const utxoHelper = {

@@ -55,4 +55,5 @@ export enum AddressType {
   M44_P2TR, // deprecated
   P2WSH,
   P2SH,
+  UNKNOWN,
 }

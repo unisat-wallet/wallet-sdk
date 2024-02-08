@@ -97,6 +97,100 @@ export function isValidAddress(
   }
 }
 
+export function decodeAddress(address: string) {
+  const mainnet = bitcoin.networks.bitcoin;
+  const testnet = bitcoin.networks.testnet;
+  const regtest = bitcoin.networks.regtest;
+  let decodeBase58: bitcoin.address.Base58CheckResult;
+  let decodeBech32: bitcoin.address.Bech32Result;
+  let networkType: NetworkType;
+  let addressType: AddressType;
+  if (
+    address.startsWith("bc1") ||
+    address.startsWith("tb1") ||
+    address.startsWith("bcrt1")
+  ) {
+    try {
+      decodeBech32 = bitcoin.address.fromBech32(address);
+      if (decodeBech32.prefix === mainnet.bech32) {
+        networkType = NetworkType.MAINNET;
+      } else if (decodeBech32.prefix === testnet.bech32) {
+        networkType = NetworkType.TESTNET;
+      } else if (decodeBech32.prefix === regtest.bech32) {
+        networkType = NetworkType.REGTEST;
+      }
+      if (decodeBech32.version === 0) {
+        if (decodeBech32.data.length === 20) {
+          addressType = AddressType.P2WPKH;
+        } else if (decodeBech32.data.length === 32) {
+          addressType = AddressType.P2WSH;
+        }
+      } else if (decodeBech32.version === 1) {
+        if (decodeBech32.data.length === 32) {
+          addressType = AddressType.P2TR;
+        }
+      }
+      return {
+        networkType,
+        addressType,
+        dust: getAddressTypeDust(addressType),
+      };
+    } catch (e) {}
+  } else {
+    try {
+      decodeBase58 = bitcoin.address.fromBase58Check(address);
+      if (decodeBase58.version === mainnet.pubKeyHash) {
+        networkType = NetworkType.MAINNET;
+        addressType = AddressType.P2PKH;
+      } else if (decodeBase58.version === testnet.pubKeyHash) {
+        networkType = NetworkType.TESTNET;
+        addressType = AddressType.P2PKH;
+      } else if (decodeBase58.version === regtest.pubKeyHash) {
+        // do not work
+        networkType = NetworkType.REGTEST;
+        addressType = AddressType.P2PKH;
+      } else if (decodeBase58.version === mainnet.scriptHash) {
+        networkType = NetworkType.MAINNET;
+        addressType = AddressType.P2SH_P2WPKH;
+      } else if (decodeBase58.version === testnet.scriptHash) {
+        networkType = NetworkType.TESTNET;
+        addressType = AddressType.P2SH_P2WPKH;
+      } else if (decodeBase58.version === regtest.scriptHash) {
+        // do not work
+        networkType = NetworkType.REGTEST;
+        addressType = AddressType.P2SH_P2WPKH;
+      }
+      return {
+        networkType,
+        addressType,
+        dust: getAddressTypeDust(addressType),
+      };
+    } catch (e) {}
+  }
+
+  return {
+    networkType: NetworkType.MAINNET,
+    addressType: AddressType.UNKNOWN,
+    dust: 546,
+  };
+}
+
+function getAddressTypeDust(addressType: AddressType) {
+  if (
+    addressType === AddressType.P2WPKH ||
+    addressType === AddressType.M44_P2WPKH
+  ) {
+    return 294;
+  } else if (
+    addressType === AddressType.P2TR ||
+    addressType === AddressType.M44_P2TR
+  ) {
+    return 330;
+  } else {
+    return 546;
+  }
+}
+
 /**
  * Get address type.
  */
@@ -104,44 +198,7 @@ export function getAddressType(
   address: string,
   networkType: NetworkType = NetworkType.MAINNET
 ): AddressType {
-  const network = toPsbtNetwork(networkType);
-  let type: AddressType;
-
-  try {
-    const decoded = bitcoin.address.fromBase58Check(address);
-
-    if (decoded.version === network.pubKeyHash) {
-      type = AddressType.P2PKH;
-    } else if (decoded.version === network.scriptHash) {
-      type = AddressType.P2SH_P2WPKH; //P2SH
-    } else {
-      throw `unknown version number: ${decoded.version}`;
-    }
-  } catch (error) {
-    try {
-      // not a Base58 address, try Bech32
-      const decodedBech32 = bitcoin.address.fromBech32(address);
-
-      if (decodedBech32.version === 0 && decodedBech32.data.length === 20) {
-        type = AddressType.P2WPKH;
-      } else if (
-        decodedBech32.version === 0 &&
-        decodedBech32.data.length === 32
-      ) {
-        type = AddressType.P2WSH;
-      } else if (
-        decodedBech32.version === 1 &&
-        decodedBech32.data.length === 32
-      ) {
-        type = AddressType.P2TR;
-      } else {
-        throw `unknown Bech32 address format`;
-      }
-    } catch (err) {
-      throw "unsupport address type: " + address;
-    }
-  }
-  return type;
+  return decodeAddress(address).addressType;
 }
 
 /**
