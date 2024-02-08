@@ -106,4 +106,20 @@ describe("verifyMessage", function () {
 
     expect(signature_now).eq(signature_old);
   });
+
+  it("deterministic ecdsa", async function () {
+    const message = "hello";
+    const wallet = new LocalWallet(
+      "L3VFeEujGtevx9w18HD1fhRbCH67Az2dpCymeRE1SoPK6XQtaN2k",
+      AddressType.P2TR,
+      NetworkType.MAINNET
+    );
+    const signature = await wallet.signMessage(message, "ecdsa");
+    const pubkey = await wallet.getPublicKey();
+    const result = await verifyMessageOfECDSA(pubkey, message, signature);
+    expect(result).eq(true);
+    expect(signature).eq(
+      "IAR9YCVMTeNIGzStagcrMfAJI0ehg8QT4dULe8n25Tw8VFo+15jgNRrzY282xGu7fnpmpQVKdi7d9evDBUkUpwk="
+    );
+  });
 });

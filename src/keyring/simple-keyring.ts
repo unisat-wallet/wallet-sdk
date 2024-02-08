@@ -2,7 +2,10 @@ import { isTaprootInput } from "bitcoinjs-lib/src/psbt/bip371";
 import { decode } from "bs58check";
 import { EventEmitter } from "events";
 import { ECPair, ECPairInterface, bitcoin } from "../bitcoin-core";
-import { signMessageOfECDSA, verifyMessageOfECDSA } from "../message";
+import {
+  signMessageOfDeterministicECDSA,
+  verifyMessageOfECDSA,
+} from "../message";
 import { tweakSigner } from "../utils";
 
 const type = "Simple Key Pair";
@@ -84,7 +87,7 @@ export class SimpleKeyring extends EventEmitter {
 
   async signMessage(publicKey: string, text: string) {
     const keyPair = this._getPrivateKeyFor(publicKey);
-    return signMessageOfECDSA(keyPair, text);
+    return signMessageOfDeterministicECDSA(keyPair, text);
   }
 
   async verifyMessage(publicKey: string, text: string, sig: string) {
