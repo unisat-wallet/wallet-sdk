@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import bitcore from "bitcore-lib";
+import KeystoneSDK, { UR } from '@keystonehq/keystone-sdk';
 
 interface KeystoneKey {
   path: string;
@@ -37,6 +38,20 @@ export class KeystoneKeyring extends EventEmitter {
     if (opts) {
       this.deserialize(opts);
     }
+  }
+
+  async initFromUR(type: string, cbor: string) {
+    const keystoneSDK = new KeystoneSDK({
+      origin: "UniSat Extension",
+    });
+    const account = keystoneSDK.parseAccount(new UR(Buffer.from(cbor, 'hex'), type));
+    this.deserialize({
+      mfp: account.masterFingerprint,
+      keys: account.keys.map((k) => ({
+        path: k.path,
+        extendedPublicKey: k.extendedPublicKey,
+      })),
+    })
   }
 
   getHDPublicKey(hdPath: string) {
