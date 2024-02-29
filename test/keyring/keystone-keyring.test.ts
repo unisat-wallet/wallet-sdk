@@ -74,7 +74,7 @@ describe("bitcoin-keystone-keyring", () => {
             "extendedPublicKey": "xpub6Cq9mdT8xwFe9LYQnt9y1hJXTyo7KQJM8pRH6K95F1mbELzgm825m3hyAZ97vsUV8Xh7VRwu7bKuLZEmUV1ABqCRQqFzZHAsfaJXTYSY1cf"
           }
         ],
-        "hdPath": "m/84'/0'/0'",
+        "hdPath": "m/84'/0'/0'/0",
         "activeIndexes": [0]
       });
     });
