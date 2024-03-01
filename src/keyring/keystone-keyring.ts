@@ -69,14 +69,18 @@ export class KeystoneKeyring extends EventEmitter {
     return new bitcore.HDPublicKey(key.extendedPublicKey);
   }
 
+  getDefaultHdPath() {
+    return this.keys.find((v) => v.path === 'm/44\'/0\'/0\'').path + '/0';
+  }
+
   initRoot() {
-    this.root = this.getHDPublicKey(this.hdPath ?? this.keys[0].path);
+    this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath());
   }
 
   async deserialize(opts: DeserializeOption) {
     this.mfp = opts.mfp;
     this.keys = opts.keys;
-    this.hdPath = opts.hdPath || this.keys[0].path + '/0';
+    this.hdPath = opts.hdPath ?? this.getDefaultHdPath();
     this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [0];
     this.initRoot();
   }
