@@ -171,7 +171,10 @@ export class EstimateWallet implements AbstractWallet {
 
     psbt = await this.keyring.signTransaction(psbt, _inputs);
     if (_opts.autoFinalized) {
-      psbt.finalizeAllInputs();
+      _inputs.forEach((v) => {
+        // psbt.validateSignaturesOfInput(v.index, validator);
+        psbt.finalizeInput(v.index);
+      });
     }
     return psbt;
   }
