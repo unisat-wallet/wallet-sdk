@@ -1,6 +1,7 @@
+import { sha256 } from "bitcoinjs-lib/src/crypto";
 import { expect } from "chai";
 import { bitcoin } from "../../src/bitcoin-core";
-import { SimpleKeyring } from "../../src/keyring";
+import { SimpleKeyring, verifySignData } from "../../src/keyring";
 import { toXOnly } from "../../src/utils";
 
 const TYPE_STR = "Simple Key Pair";
@@ -108,6 +109,54 @@ describe("bitcoin-simple-keyring", () => {
       const sig = await newKeyring.signMessage(pubkey, msg);
       const verified = await newKeyring.verifyMessage(pubkey, msg, sig);
       expect(verified).eq(true);
+    });
+  });
+
+  describe("#sign data", function () {
+    it("verify ecdsa success", async function () {
+      const newKeyring = new SimpleKeyring([testAccount.key]);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const data = sha256(Buffer.from("HELLO WORLD")).toString("hex");
+      const sig = await newKeyring.signData(pubkey, data, "ecdsa");
+      const verified = verifySignData(pubkey, data, "ecdsa", sig);
+      expect(verified).eq(true);
+    });
+
+    it("verify schnorr success", async function () {
+      const newKeyring = new SimpleKeyring([testAccount.key]);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const data = sha256(Buffer.from("HELLO WORLD")).toString("hex");
+      const sig = await newKeyring.signData(pubkey, data, "schnorr");
+      const verified = verifySignData(pubkey, data, "schnorr", sig);
+      expect(verified).eq(true);
+    });
+
+    it("verify schnorr failed", async function () {
+      const newKeyring = new SimpleKeyring([testAccount.key]);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const data = sha256(Buffer.from("HELLO WORLD")).toString("hex");
+      const sig = await newKeyring.signData(pubkey, data, "ecdsa");
+      const verified = verifySignData(pubkey, data, "schnorr", sig);
+      expect(verified).eq(false);
+    });
+
+    it("verify invalid data", async function () {
+      const newKeyring = new SimpleKeyring([testAccount.key]);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const data = "HELLO WORLD";
+
+      let err = null;
+      try {
+        const sig = await newKeyring.signData(pubkey, data);
+      } catch (e) {
+        err = e;
+      }
+
+      expect(err.message).eq("Expected Hash");
     });
   });
 

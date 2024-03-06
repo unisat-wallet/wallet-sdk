@@ -94,6 +94,22 @@ export class SimpleKeyring extends EventEmitter {
     return verifyMessageOfECDSA(publicKey, text, sig);
   }
 
+  // Sign any content, but note that the content signed by this method is unreadable, so use it with caution.
+  async signData(
+    publicKey: string,
+    data: string,
+    type: "ecdsa" | "schnorr" = "ecdsa"
+  ) {
+    const keyPair = this._getPrivateKeyFor(publicKey);
+    if (type === "ecdsa") {
+      return keyPair.sign(Buffer.from(data, "hex")).toString("hex");
+    } else if (type === "schnorr") {
+      return keyPair.signSchnorr(Buffer.from(data, "hex")).toString("hex");
+    } else {
+      throw new Error("Not support type");
+    }
+  }
+
   private _getPrivateKeyFor(publicKey: string) {
     if (!publicKey) {
       throw new Error("Must specify publicKey.");
@@ -129,5 +145,27 @@ export class SimpleKeyring extends EventEmitter {
       throw new Error("Simple Keyring - Unable to find matching publicKey.");
     }
     return wallet;
+  }
+}
+
+export function verifySignData(
+  publicKey: string,
+  hash: string,
+  type: "ecdsa" | "schnorr",
+  signature: string
+) {
+  const keyPair = ECPair.fromPublicKey(Buffer.from(publicKey, "hex"));
+  if (type === "ecdsa") {
+    return keyPair.verify(
+      Buffer.from(hash, "hex"),
+      Buffer.from(signature, "hex")
+    );
+  } else if (type === "schnorr") {
+    return keyPair.verifySchnorr(
+      Buffer.from(hash, "hex"),
+      Buffer.from(signature, "hex")
+    );
+  } else {
+    throw new Error("Not support type");
   }
 }
