@@ -70,8 +70,26 @@ export function printPsbt(psbtData: string | bitcoin.Psbt) {
 
   str += `Outputs:(${psbt.txOutputs.length} )\n`;
   psbt.txOutputs.forEach((output, index) => {
-    str += `#${index} ${output.address} ${output.value}\n`;
-    totalOutput += output.value;
+    if (output.address) {
+      str += `#${index} ${output.address} ${output.value}\n`;
+      totalOutput += output.value;
+    } else {
+      if (output.script[0] === 0x6a) {
+        let opreutrnDataString = "OP_RETURN ";
+        let curScript = output.script.slice(1);
+        while (curScript.length > 0) {
+          const len = parseInt(curScript.slice(0, 1).toString("hex"), 16);
+          opreutrnDataString +=
+            curScript.slice(1, len + 1).toString("hex") + " ";
+          curScript = curScript.slice(len + 1);
+        }
+        str += `#${index} ${opreutrnDataString} ${output.value}\n`;
+      } else {
+        str += `#${index} ${output.script.toString("hex")} ${output.value}\n`;
+      }
+
+      totalOutput += output.value;
+    }
   });
 
   str += `Left: ${totalInput - totalOutput}\n`;

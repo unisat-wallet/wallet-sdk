@@ -12,6 +12,7 @@ export async function sendBTC({
   changeAddress,
   feeRate,
   enableRBF = true,
+  memo,
 }: {
   btcUtxos: UnspentOutput[];
   tos: {
@@ -22,6 +23,7 @@ export async function sendBTC({
   changeAddress: string;
   feeRate: number;
   enableRBF?: boolean;
+  memo?: string;
 }) {
   if (utxoHelper.hasAnyAssets(btcUtxos)) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
@@ -36,6 +38,14 @@ export async function sendBTC({
   tos.forEach((v) => {
     tx.addOutput(v.address, v.satoshis);
   });
+
+  if (memo) {
+    if (Buffer.from(memo, "hex").toString("hex") === memo) {
+      tx.addOpreturn([Buffer.from(memo, "hex")]);
+    } else {
+      tx.addOpreturn([Buffer.from(memo)]);
+    }
+  }
 
   const toSignInputs = await tx.addSufficientUtxosForFee(btcUtxos);
 

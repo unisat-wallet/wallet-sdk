@@ -18,7 +18,8 @@ interface TxInput {
 }
 
 interface TxOutput {
-  address: string;
+  address?: string;
+  script?: Buffer;
   value: number;
 }
 
@@ -164,6 +165,14 @@ export class Transaction {
     });
   }
 
+  addOpreturn(data: Buffer[]) {
+    const embed = bitcoin.payments.embed({ data });
+    this.outputs.push({
+      script: embed.output,
+      value: 0,
+    });
+  }
+
   getOutput(index: number) {
     return this.outputs[index];
   }
@@ -208,8 +217,19 @@ export class Transaction {
       }
     });
     this.outputs.forEach((v) => {
-      psbt.addOutput(v);
+      if (v.address) {
+        psbt.addOutput({
+          address: v.address,
+          value: v.value,
+        });
+      } else if (v.script) {
+        psbt.addOutput({
+          script: v.script,
+          value: v.value,
+        });
+      }
     });
+
     return psbt;
   }
 

@@ -168,5 +168,42 @@ describe("sendBTC", () => {
         expectFeeRate(addressType, ret.feeRate, 1);
       });
     });
+
+    describe("send with memo", function () {
+      it("allow hex and utf8 ", async function () {
+        const ret1 = await dummySendBTC({
+          wallet: fromWallet,
+          tos: [
+            {
+              address: toWallet.address,
+              satoshis: 1000,
+            },
+          ],
+          btcUtxos: [genDummyUtxo(fromWallet, 10000)],
+          feeRate: 1,
+          memo: Buffer.from("hello").toString("hex"),
+          dump: true,
+        });
+        const data1 = ret1.psbt.txOutputs[1].script.toString("hex");
+        expect(ret1.inputCount).eq(1);
+        expect(ret1.outputCount).eq(3);
+        expectFeeRate(addressType, ret1.feeRate, 1);
+
+        const ret2 = await dummySendBTC({
+          wallet: fromWallet,
+          tos: [
+            {
+              address: toWallet.address,
+              satoshis: 1000,
+            },
+          ],
+          btcUtxos: [genDummyUtxo(fromWallet, 10000)],
+          feeRate: 1,
+          memo: "hello",
+        });
+        const data2 = ret2.psbt.txOutputs[1].script.toString("hex");
+        expect(data1).eq(data2);
+      });
+    });
   });
 });
