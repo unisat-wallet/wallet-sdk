@@ -228,4 +228,14 @@ describe("address", function () {
       }
     );
   });
+
+  it("decodeAddress UNKNOWN", function () {
+    expect(decodeAddress("invalid address").addressType).eq(
+      AddressType.UNKNOWN
+    );
+
+    expect(decodeAddress("bc1qxxx").addressType).eq(AddressType.UNKNOWN);
+
+    expect(decodeAddress("").addressType).eq(AddressType.UNKNOWN);
+  });
 });
