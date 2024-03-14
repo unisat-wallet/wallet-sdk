@@ -4,6 +4,7 @@ import KeystoneSDK, { KeystoneBitcoinSDK, UR } from '@keystonehq/keystone-sdk';
 import { bitcoin } from '../bitcoin-core';
 import { verifyMessageOfECDSA } from '../message';
 import { uuid } from '@keystonehq/keystone-sdk/dist/utils';
+import { Psbt } from 'bitcoinjs-lib';
 
 interface KeystoneKey {
   path: string;
@@ -234,7 +235,8 @@ export class KeystoneKeyring extends EventEmitter {
     return child.publicKey.toString("hex");
   }
 
-  async genSignPsbtUr(psbt: bitcoin.Psbt) {
+  async genSignPsbtUr(psbtHex: string) {
+    const psbt = Psbt.fromHex(psbtHex);
     const keystoneSDK = new KeystoneSDK({
       origin: this.origin,
     });
