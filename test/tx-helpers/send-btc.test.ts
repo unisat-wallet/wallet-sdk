@@ -206,4 +206,44 @@ describe("sendBTC", () => {
       });
     });
   });
+
+  describe("P2PKH", function () {
+    const wallet_P2WPKH = LocalWallet.fromRandom(
+      AddressType.P2WPKH,
+      NetworkType.MAINNET
+    );
+    const wallet_P2PKH = LocalWallet.fromRandom(
+      AddressType.P2PKH,
+      NetworkType.MAINNET
+    );
+
+    it("use nonWitnessUtxo for P2PKH", async function () {
+      const ret1 = await dummySendBTC({
+        wallet: wallet_P2WPKH,
+        btcUtxos: [genDummyUtxo(wallet_P2WPKH, 10000)],
+        tos: [{ address: wallet_P2PKH.address, satoshis: 5000 }],
+        feeRate: 1,
+      });
+      const tx1 = ret1.psbt.extractTransaction();
+      const ret2 = await dummySendBTC({
+        wallet: wallet_P2PKH,
+        btcUtxos: [
+          {
+            txid: tx1.getId(),
+            vout: 0,
+            satoshis: 5000,
+            scriptPk: wallet_P2PKH.scriptPk,
+            addressType: wallet_P2PKH.addressType,
+            pubkey: wallet_P2PKH.pubkey,
+            inscriptions: [],
+            atomicals: [],
+            rawtx: tx1.toHex(),
+          },
+        ],
+        tos: [{ address: wallet_P2PKH.address, satoshis: 3000 }],
+        feeRate: 1,
+      });
+      expect(ret2.feeRate).eq(1);
+    });
+  });
 });

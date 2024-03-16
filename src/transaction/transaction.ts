@@ -11,8 +11,9 @@ interface TxInput {
   data: {
     hash: string;
     index: number;
-    witnessUtxo: { value: number; script: Buffer };
+    witnessUtxo?: { value: number; script: Buffer };
     tapInternalKey?: Buffer;
+    nonWitnessUtxo?: Buffer;
   };
   utxo: UnspentOutput;
 }
@@ -26,7 +27,7 @@ interface TxOutput {
 /**
  * Convert UnspentOutput to PSBT TxInput
  */
-function utxoToInput(utxo: UnspentOutput): TxInput {
+function utxoToInput(utxo: UnspentOutput, estimate?: boolean): TxInput {
   if (
     utxo.addressType === AddressType.P2TR ||
     utxo.addressType === AddressType.M44_P2TR
@@ -61,18 +62,30 @@ function utxoToInput(utxo: UnspentOutput): TxInput {
       utxo,
     };
   } else if (utxo.addressType === AddressType.P2PKH) {
-    const data = {
-      hash: utxo.txid,
-      index: utxo.vout,
-      witnessUtxo: {
-        value: utxo.satoshis,
-        script: Buffer.from(utxo.scriptPk, "hex"),
-      },
-    };
-    return {
-      data,
-      utxo,
-    };
+    if (!utxo.rawtx || estimate) {
+      const data = {
+        hash: utxo.txid,
+        index: utxo.vout,
+        witnessUtxo: {
+          value: utxo.satoshis,
+          script: Buffer.from(utxo.scriptPk, "hex"),
+        },
+      };
+      return {
+        data,
+        utxo,
+      };
+    } else {
+      const data = {
+        hash: utxo.txid,
+        index: utxo.vout,
+        nonWitnessUtxo: Buffer.from(utxo.rawtx, "hex"),
+      };
+      return {
+        data,
+        utxo,
+      };
+    }
   } else if (utxo.addressType === AddressType.P2SH_P2WPKH) {
     const redeemData = bitcoin.payments.p2wpkh({
       pubkey: Buffer.from(utxo.pubkey, "hex"),
@@ -137,10 +150,7 @@ export class Transaction {
   }
 
   getTotalInput() {
-    return this.inputs.reduce(
-      (pre, cur) => pre + cur.data.witnessUtxo.value,
-      0
-    );
+    return this.inputs.reduce((pre, cur) => pre + cur.utxo.satoshis, 0);
   }
 
   getTotalOutput() {
@@ -208,8 +218,10 @@ export class Transaction {
     const psbt = new bitcoin.Psbt({ network });
     this.inputs.forEach((v, index) => {
       if (v.utxo.addressType === AddressType.P2PKH) {
-        //@ts-ignore
-        psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = true;
+        if (v.data.witnessUtxo) {
+          //@ts-ignore
+          psbt.__CACHE.__UNSAFE_SIGN_NONSEGWIT = true;
+        }
       }
       psbt.data.addInput(v.data);
       if (this.enableRBF) {
@@ -264,7 +276,7 @@ export class Transaction {
 
     tx.inputs = [];
     tx.utxos.forEach((v) => {
-      const input = utxoToInput(v);
+      const input = utxoToInput(v, true);
       tx.inputs.push(input);
     });
     const psbt = tx.toPsbt();

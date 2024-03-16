@@ -44,6 +44,7 @@ export interface UnspentOutput {
     type: "FT" | "NFT";
     ticker?: string;
   }[];
+  rawtx?: string;
 }
 
 export enum AddressType {
