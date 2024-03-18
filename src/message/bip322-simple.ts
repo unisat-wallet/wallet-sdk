@@ -16,7 +16,7 @@ function bip0322_hash(message: string) {
 }
 
 /**
- * refference: https://github.com/bitcoin/bips/blob/master/bip-0322.mediawiki
+ * reference: https://github.com/bitcoin/bips/blob/master/bip-0322.mediawiki
  */
 export async function signMessageOfBIP322Simple({
   message,
