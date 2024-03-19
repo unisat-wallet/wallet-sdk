@@ -63,7 +63,7 @@ export function genPsbtOfBIP322Simple({
       value: 0,
     },
   });
-  psbtToSign.addOutput({ script: outputScript, value: 0 });
+  psbtToSign.addOutput({ script: Buffer.from("6a", "hex"), value: 0 });
 
   return psbtToSign;
 }
