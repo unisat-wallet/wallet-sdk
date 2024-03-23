@@ -129,6 +129,7 @@ export async function dummySendBTC({
   dump,
   enableRBF,
   memo,
+  memos,
 }: {
   wallet: LocalWallet;
   btcUtxos: UnspentOutput[];
@@ -137,6 +138,7 @@ export async function dummySendBTC({
   dump?: boolean;
   enableRBF?: boolean;
   memo?: string;
+  memos?: string[];
 }) {
   const { psbt, toSignInputs } = await sendBTC({
     btcUtxos,
@@ -146,6 +148,7 @@ export async function dummySendBTC({
     feeRate,
     enableRBF,
     memo,
+    memos,
   });
 
   await wallet.signPsbt(psbt, { autoFinalized: true, toSignInputs });
