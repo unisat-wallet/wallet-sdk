@@ -24,6 +24,7 @@ const type = "Keystone";
 
 export class KeystoneKeyring extends EventEmitter {
   static type = type;
+  type = type;
   mfp: string = "";
   keys: KeystoneKey[] = [];
   hdPath?: string;
@@ -45,7 +46,7 @@ export class KeystoneKeyring extends EventEmitter {
       origin: "UniSat Extension",
     });
     const account = keystoneSDK.parseAccount(new UR(Buffer.from(cbor, 'hex'), type));
-    this.deserialize({
+    await this.deserialize({
       mfp: account.masterFingerprint,
       keys: account.keys.map((k) => ({
         path: k.path,
