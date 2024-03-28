@@ -15,19 +15,14 @@ function bip0322_hash(message: string) {
   return result.toString("hex");
 }
 
-/**
- * refference: https://github.com/bitcoin/bips/blob/master/bip-0322.mediawiki
- */
-export async function signMessageOfBIP322Simple({
+export function genPsbtOfBIP322Simple({
   message,
   address,
   networkType,
-  wallet,
 }: {
   message: string;
   address: string;
   networkType: NetworkType;
-  wallet: AbstractWallet;
 }) {
   const outputScript = addressToScriptPk(address, networkType);
   const addressType = getAddressType(address, networkType);
@@ -68,11 +63,13 @@ export async function signMessageOfBIP322Simple({
       value: 0,
     },
   });
-  psbtToSign.addOutput({ script: Buffer.from("6a", "hex"), value: 0 });
+  psbtToSign.addOutput({ script: outputScript, value: 0 });
 
-  await wallet.signPsbt(psbtToSign);
+  return psbtToSign;
+}
 
-  const txToSign = psbtToSign.extractTransaction();
+export function getSignatureFromPsbtOfBIP322Simple(psbt: bitcoin.Psbt) {
+  const txToSign = psbt.extractTransaction();
 
   function encodeVarString(b) {
     return Buffer.concat([encode(b.byteLength), b]);
@@ -86,6 +83,31 @@ export async function signMessageOfBIP322Simple({
   const signature = result.toString("base64");
 
   return signature;
+}
+
+/**
+ * refference: https://github.com/bitcoin/bips/blob/master/bip-0322.mediawiki
+ */
+export async function signMessageOfBIP322Simple({
+  message,
+  address,
+  networkType,
+  wallet,
+}: {
+  message: string;
+  address: string;
+  networkType: NetworkType;
+  wallet: AbstractWallet;
+}) {
+  const psbtToSign = genPsbtOfBIP322Simple({
+    message,
+    address,
+    networkType,
+  });
+
+  await wallet.signPsbt(psbtToSign);
+
+  return getSignatureFromPsbtOfBIP322Simple(psbtToSign);
 }
 
 export function verifyMessageOfBIP322Simple(
