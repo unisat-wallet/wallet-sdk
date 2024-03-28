@@ -47,6 +47,39 @@ describe("bitcoin-keystone-keyring", () => {
     });
   });
 
+  describe("init", () => {
+    it("init from UR", async () => {
+      const keyring = new KeystoneKeyring();
+
+      await keyring.initFromUR("crypto-account", "a2011a527447030284d90194d9012fa702f40358210238506dbd94e82166cb68536ffa0d0e145fcb87b975d9dbd0475fdb664f3daea6045820399c9a9c6b98711235a2484f8e44cbb5f1e656306ae15a0bb29a0d7ed227f0a805d90131a20100020006d90130a301861854f500f500f5021a52744703030307d90130a2018400f480f40300081a81ff3431d90193d9012fa702f403582103ebd552027b73adb1de1aa494ca7cedfe781434d6f102a55355b118a0c5da78bc045820517438aec2b78e81c275a41be63df6083358070cbefdb59de69bd2f99c003e8a05d90131a20100020006d90130a30186182cf500f500f5021a52744703030307d90130a2018400f480f40300081a7441f35cd90190d90194d9012fa702f403582102f3b97cf3f3387e2c4d8c7141a21529a90e0585e9f032706798d18f988a56e3f1045820ac31dee4dd3f4632f984e0a41e8728edc3ec67f614c8f03181490c8945d19d7405d90131a20100020006d90130a301861831f500f500f5021a52744703030307d90130a2018400f480f40300081a59fcb265d90199d9012fa702f4035821026c395e1763f5a6f07ade3557429c4bdab45d5487599ed283e78534ac1816408f045820af3a23ef7b1a54d3dbdb6c3e502382e55de5ff575f13ceacf52be01be37c0b4405d90131a20100020006d90130a301861856f500f500f5021a52744703030307d90130a2018400f480f40300081aa0682b01");
+      const opts = await keyring.serialize();
+
+      expect(opts).deep.eq({
+        "mfp": "52744703",
+        "keys": [
+          {
+            "path": "m/84'/0'/0'",
+            "extendedPublicKey": "xpub6CcBrNAXBhrdb29q4BFApXgKgCdnHevzGnwFKnDSYfWWMcqkbH17ay6vaUJDZxFdZx5y5AdcoEzLfURSdwtQEEZ93Y5VXUSJ9S8hm5SY7Si"
+          },
+          {
+            "path": "m/44'/0'/0'",
+            "extendedPublicKey": "xpub6CWL8m4zcbAPXjWkfFWkyjkorenkhBV8P6VFFCmoMn9WZZZhC3ehf7jovLr5HYXGnHZXZbEBFCWo6KqZiqzaV1gMMc5fdprGiWiaA6vynpA"
+          },
+          {
+            "path": "m/49'/0'/0'",
+            "extendedPublicKey": "xpub6CK8ZyoANWjWk24vmGhZ3V5x28QinZ3C66P3es5oDgtrvZLDK8txJHXu88zKsGc3WA7HFUDPHYcoWir4j2cMNMKBBhfHCB37StVhxozA5Lp"
+          },
+          {
+            "path": "m/86'/0'/0'",
+            "extendedPublicKey": "xpub6Cq9mdT8xwFe9LYQnt9y1hJXTyo7KQJM8pRH6K95F1mbELzgm825m3hyAZ97vsUV8Xh7VRwu7bKuLZEmUV1ABqCRQqFzZHAsfaJXTYSY1cf"
+          }
+        ],
+        "hdPath": "m/84'/0'/0'",
+        "activeIndexes": [0]
+      });
+    });
+  })
+
   describe("manage accounts", () => {
     it("add a single account", async () => {
       const keyring = new KeystoneKeyring(initOpts);
