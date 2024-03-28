@@ -1,6 +1,10 @@
 import { EventEmitter } from "events";
 import bitcore from "bitcore-lib";
-import KeystoneSDK, { UR } from '@keystonehq/keystone-sdk';
+import KeystoneSDK, { KeystoneBitcoinSDK, UR } from '@keystonehq/keystone-sdk';
+import { bitcoin } from '../bitcoin-core';
+import { verifyMessageOfECDSA } from '../message';
+import { uuid } from '@keystonehq/keystone-sdk/dist/utils';
+import { Psbt } from 'bitcoinjs-lib';
 
 interface KeystoneKey {
   path: string;
@@ -34,6 +38,8 @@ export class KeystoneKeyring extends EventEmitter {
   page = 0;
   perPage = 5;
 
+  origin = "UniSat Wallet";
+
   constructor(opts?: DeserializeOption) {
     super();
     if (opts) {
@@ -43,7 +49,7 @@ export class KeystoneKeyring extends EventEmitter {
 
   async initFromUR(type: string, cbor: string) {
     const keystoneSDK = new KeystoneSDK({
-      origin: "UniSat Extension",
+      origin: this.origin,
     });
     const account = keystoneSDK.parseAccount(new UR(Buffer.from(cbor, 'hex'), type));
     await this.deserialize({
@@ -70,7 +76,7 @@ export class KeystoneKeyring extends EventEmitter {
   }
 
   getDefaultHdPath() {
-    return this.keys.find((v) => v.path === 'm/44\'/0\'/0\'').path + '/0';
+    return 'm/44\'/0\'/0\'/0';
   }
 
   initRoot() {
@@ -227,5 +233,65 @@ export class KeystoneKeyring extends EventEmitter {
     const root = this.getHDPublicKey(hdPath);
     const child = root.derive(`m/0/${index}`);
     return child.publicKey.toString("hex");
+  }
+
+  async genSignPsbtUr(psbtHex: string) {
+    const psbt = Psbt.fromHex(psbtHex);
+    const keystoneSDK = new KeystoneSDK({
+      origin: this.origin,
+    });
+    const ur = keystoneSDK.btc.generatePSBT(psbt.data.toBuffer());
+    return {
+      type: ur.type,
+      cbor: ur.cbor.toString("hex"),
+    }
+  }
+
+  async parseSignPsbtUr(type: string, cbor: string) {
+    const keystoneSDK = new KeystoneSDK({
+      origin: this.origin,
+    });
+    return keystoneSDK.btc.parsePSBT(new UR(Buffer.from(cbor, 'hex'), type));
+  }
+
+  async genSignMsgUr(publicKey: string, text: string) {
+    const keystoneSDK = new KeystoneSDK({
+      origin: this.origin,
+    });
+    const i = this.activeIndexes.find((i) => this.getWalletByIndex(i).publicKey === publicKey);
+    if (i === undefined) {
+      throw new Error("publicKey not found");
+    }
+    const requestId = uuid.v4();
+    const ur = keystoneSDK.btc.generateSignRequest({
+      requestId,
+      signData: Buffer.from(text).toString("hex"),
+      dataType: KeystoneBitcoinSDK.DataType.message,
+      accounts: [{
+        path: `${this.hdPath}/${i}`,
+        xfp: this.mfp,
+      }],
+      origin: this.origin,
+    });
+    return {
+      requestId,
+      type: ur.type,
+      cbor: ur.cbor.toString("hex"),
+    }
+  }
+
+  async parseSignMsgUr(type: string, cbor: string) {
+    const keystoneSDK = new KeystoneSDK({
+      origin: this.origin,
+    });
+    return keystoneSDK.btc.parseSignature(new UR(Buffer.from(cbor, 'hex'), type));
+  }
+
+  async signMessage(publicKey: string, text: string) {
+    return 'Signing Message with Keystone should use genSignMsgUr and parseSignMsgUr';
+  }
+
+  async verifyMessage(publicKey: string, text: string, sig: string) {
+    return verifyMessageOfECDSA(publicKey, text, sig);
   }
 }
