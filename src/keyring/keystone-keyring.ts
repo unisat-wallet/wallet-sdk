@@ -55,22 +55,32 @@ export class KeystoneKeyring extends EventEmitter {
     })
   }
 
+  getHardenedPath(hdPath: string) {
+    const paths = hdPath.split("/");
+    return paths.slice(0, 4).join("/")
+  }
+
   getHDPublicKey(hdPath: string) {
-    const key = this.keys.find((v) => v.path === hdPath);
+    const path = this.getHardenedPath(hdPath);
+    const key = this.keys.find((v) => v.path === path);
     if (!key) {
       throw new Error("Invalid path");
     }
     return new bitcore.HDPublicKey(key.extendedPublicKey);
   }
 
+  getDefaultHdPath() {
+    return this.keys.find((v) => v.path === 'm/44\'/0\'/0\'').path + '/0';
+  }
+
   initRoot() {
-    this.root = this.getHDPublicKey(this.hdPath ?? this.keys[0].path);
+    this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath());
   }
 
   async deserialize(opts: DeserializeOption) {
     this.mfp = opts.mfp;
     this.keys = opts.keys;
-    this.hdPath = opts.hdPath || this.keys[0].path;
+    this.hdPath = opts.hdPath ?? this.getDefaultHdPath();
     this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [0];
     this.initRoot();
   }
@@ -121,7 +131,7 @@ export class KeystoneKeyring extends EventEmitter {
     const child = this.root.derive(`m/0/${index}`);
     return {
       index,
-      path: `${this.hdPath}/0/${index}`,
+      path: `${this.hdPath}/${index}`,
       publicKey: child.publicKey.toString("hex"),
     };
   }
