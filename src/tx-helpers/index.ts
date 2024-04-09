@@ -3,6 +3,7 @@ import { sendAtomicalsNFT } from "./send-atomicals-nft";
 import { sendAllBTC, sendBTC } from "./send-btc";
 import { sendInscription } from "./send-inscription";
 import { sendInscriptions } from "./send-inscriptions";
+import { sendRunes } from "./send-runes";
 import { splitInscriptionUtxo } from "./split-inscription-utxo";
 
 export {
@@ -12,5 +13,6 @@ export {
   sendBTC,
   sendInscription,
   sendInscriptions,
+  sendRunes,
   splitInscriptionUtxo,
 };
