@@ -8,6 +8,7 @@ import {
 import { sendAtomicalsFT } from "../../src/tx-helpers/send-atomicals-ft";
 import { sendAtomicalsNFT } from "../../src/tx-helpers/send-atomicals-nft";
 import { sendInscription } from "../../src/tx-helpers/send-inscription";
+import { sendRunes } from "../../src/tx-helpers/send-runes";
 import { AddressType, UnspentOutput } from "../../src/types";
 import { LocalWallet } from "../../src/wallet";
 import { printPsbt } from "../utils";
@@ -53,6 +54,10 @@ export function genDummyUtxo(
       type: "NFT" | "FT";
       ticker?: string;
     }[];
+    runes?: {
+      runeId: string;
+      amount: string;
+    }[];
   },
   txid?: string,
   vout?: number
@@ -68,6 +73,7 @@ export function genDummyUtxo(
     pubkey: wallet.pubkey,
     inscriptions: assets?.inscriptions || [],
     atomicals: assets?.atomicals || [],
+    runes: assets?.runes || [],
   };
 }
 
@@ -521,6 +527,80 @@ export async function dummySendAtomical({
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
     enableRBF,
+  });
+  const btcToSignInputs = toSignInputs.filter(
+    (v) => v.publicKey === btcWallet.pubkey
+  );
+  if (btcToSignInputs.length > 0) {
+    await btcWallet.signPsbt(psbt, {
+      autoFinalized: false,
+      toSignInputs: btcToSignInputs,
+    });
+  }
+
+  const assetToSignInputs = toSignInputs.filter(
+    (v) => v.publicKey === assetWallet.pubkey
+  );
+
+  if (assetToSignInputs.length > 0) {
+    await assetWallet.signPsbt(psbt, {
+      autoFinalized: false,
+      toSignInputs: assetToSignInputs,
+    });
+  }
+
+  psbt.finalizeAllInputs();
+
+  const tx = psbt.extractTransaction(true);
+  const txid = tx.getId();
+  const inputCount = psbt.txInputs.length;
+  const outputCount = psbt.txOutputs.length;
+  const fee = psbt.getFee();
+  const virtualSize = tx.virtualSize();
+  const finalFeeRate = parseFloat((fee / virtualSize).toFixed(1));
+  if (dump) {
+    printPsbt(psbt);
+  }
+  return { psbt, txid, inputCount, outputCount, feeRate: finalFeeRate };
+}
+
+export async function dummySendRunes({
+  assetWallet,
+  assetUtxo,
+  btcWallet,
+  btcUtxos,
+  feeRate,
+  toAddress,
+  dump,
+  enableRBF,
+  runeId,
+  runeAmount,
+  outputValue,
+}: {
+  assetWallet: LocalWallet;
+  assetUtxo: UnspentOutput;
+  btcWallet: LocalWallet;
+  btcUtxos: UnspentOutput[];
+  feeRate: number;
+  toAddress: string;
+  dump?: boolean;
+  enableRBF?: boolean;
+  runeId: string | number;
+  runeAmount: string;
+  outputValue: number;
+}) {
+  const { psbt, toSignInputs } = await sendRunes({
+    assetUtxos: [assetUtxo],
+    btcUtxos,
+    toAddress,
+    networkType: btcWallet.networkType,
+    btcAddress: btcWallet.address,
+    assetAddress: assetWallet.address,
+    feeRate,
+    enableRBF,
+    runeId,
+    runeAmount,
+    outputValue,
   });
   const btcToSignInputs = toSignInputs.filter(
     (v) => v.publicKey === btcWallet.pubkey

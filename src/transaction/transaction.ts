@@ -183,6 +183,13 @@ export class Transaction {
     });
   }
 
+  addScriptOutput(script: Buffer, value: number) {
+    this.outputs.push({
+      script,
+      value,
+    });
+  }
+
   getOutput(index: number) {
     return this.outputs[index];
   }

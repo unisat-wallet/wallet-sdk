@@ -44,6 +44,10 @@ export interface UnspentOutput {
     type: "FT" | "NFT";
     ticker?: string;
   }[];
+  runes?: {
+    runeId: string;
+    amount: string;
+  }[];
   rawtx?: string;
 }
 
