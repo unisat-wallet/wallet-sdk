@@ -87,7 +87,7 @@ export class KeystoneKeyring extends EventEmitter {
     this.mfp = opts.mfp;
     this.keys = opts.keys;
     this.hdPath = opts.hdPath ?? this.getDefaultHdPath();
-    this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [0];
+    this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [];
     this.initRoot();
   }
 

@@ -75,7 +75,7 @@ describe("bitcoin-keystone-keyring", () => {
           }
         ],
         "hdPath": "m/44'/0'/0'/0",
-        "activeIndexes": [0]
+        "activeIndexes": []
       });
     });
   })
