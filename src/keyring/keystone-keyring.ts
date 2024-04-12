@@ -1,297 +1,392 @@
-import { EventEmitter } from "events";
-import bitcore from "bitcore-lib";
-import KeystoneSDK, { KeystoneBitcoinSDK, UR } from '@keystonehq/keystone-sdk';
-import { bitcoin } from '../bitcoin-core';
-import { verifyMessageOfECDSA } from '../message';
-import { uuid } from '@keystonehq/keystone-sdk/dist/utils';
-import { Psbt } from 'bitcoinjs-lib';
+import { EventEmitter } from 'events'
+import bitcore from 'bitcore-lib'
+import KeystoneSDK, { KeystoneBitcoinSDK, UR } from '@keystonehq/keystone-sdk'
+import { bitcoin } from '../bitcoin-core'
+import { verifyMessageOfECDSA } from '../message'
+import { uuid } from '@keystonehq/keystone-sdk/dist/utils'
+import { Psbt } from 'bitcoinjs-lib'
 
 interface KeystoneKey {
-  path: string;
-  extendedPublicKey: string;
+	path: string
+	extendedPublicKey: string
 }
 
 interface DeserializeOption {
-  mfp: string;
-  keys: KeystoneKey[];
-  hdPath?: string;
-  activeIndexes?: number[];
+	mfp: string
+	keys: KeystoneKey[]
+	hdPath?: string
+	activeIndexes?: number[]
 }
 
 interface Wallet {
-  index: number;
-  publicKey: string;
-  path: string;
+	index: number
+	publicKey: string
+	path: string
 }
 
-const type = "Keystone";
+const type = 'Keystone'
 
 export class KeystoneKeyring extends EventEmitter {
-  static type = type;
-  type = type;
-  mfp: string = "";
-  keys: KeystoneKey[] = [];
-  hdPath?: string;
-  activeIndexes?: number[] = [];
-  root: bitcore.HDPublicKey = null;
+	static type = type
+	type = type
+	mfp: string = ''
+	keys: KeystoneKey[] = []
+	hdPath?: string
+	activeIndexes?: number[] = []
+	root: bitcore.HDPublicKey = null
 
-  page = 0;
-  perPage = 5;
+	page = 0
+	perPage = 5
 
-  origin = "UniSat Wallet";
+	origin = 'UniSat Wallet'
 
-  constructor(opts?: DeserializeOption) {
-    super();
-    if (opts) {
-      this.deserialize(opts);
-    }
-  }
+	constructor(opts?: DeserializeOption) {
+		super()
+		if (opts) {
+			this.deserialize(opts)
+		}
+	}
 
-  async initFromUR(type: string, cbor: string) {
-    const keystoneSDK = new KeystoneSDK({
-      origin: this.origin,
-    });
-    const account = keystoneSDK.parseAccount(new UR(Buffer.from(cbor, 'hex'), type));
-    await this.deserialize({
-      mfp: account.masterFingerprint,
-      keys: account.keys.map((k) => ({
-        path: k.path,
-        extendedPublicKey: k.extendedPublicKey,
-      })),
-    })
-  }
+	async initFromUR(type: string, cbor: string) {
+		const keystoneSDK = new KeystoneSDK({
+			origin: this.origin,
+		})
+		const account = keystoneSDK.parseAccount(
+			new UR(Buffer.from(cbor, 'hex'), type)
+		)
+		await this.deserialize({
+			mfp: account.masterFingerprint,
+			keys: account.keys.map((k) => ({
+				path: k.path,
+				extendedPublicKey: k.extendedPublicKey,
+			})),
+		})
+	}
 
-  getHardenedPath(hdPath: string) {
-    const paths = hdPath.split("/");
-    return paths.slice(0, 4).join("/")
-  }
+	getHardenedPath(hdPath: string) {
+		const paths = hdPath.split('/')
+		return paths.slice(0, 4).join('/')
+	}
 
-  getHDPublicKey(hdPath: string) {
-    const path = this.getHardenedPath(hdPath);
-    const key = this.keys.find((v) => v.path === path);
-    if (!key) {
-      throw new Error("Invalid path");
-    }
-    return new bitcore.HDPublicKey(key.extendedPublicKey);
-  }
+	getHDPublicKey(hdPath: string) {
+		const path = this.getHardenedPath(hdPath)
+		const key = this.keys.find((v) => v.path === path)
+		if (!key) {
+			throw new Error('Invalid path')
+		}
+		return new bitcore.HDPublicKey(key.extendedPublicKey)
+	}
 
-  getDefaultHdPath() {
-    return 'm/44\'/0\'/0\'/0';
-  }
+	getDefaultHdPath() {
+		return "m/44'/0'/0'/0"
+	}
 
-  initRoot() {
-    this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath());
-  }
+	initRoot() {
+		this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath())
+	}
 
-  async deserialize(opts: DeserializeOption) {
-    this.mfp = opts.mfp;
-    this.keys = opts.keys;
-    this.hdPath = opts.hdPath ?? this.getDefaultHdPath();
-    this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [];
-    this.initRoot();
-  }
+	async deserialize(opts: DeserializeOption) {
+		this.mfp = opts.mfp
+		this.keys = opts.keys
+		this.hdPath = opts.hdPath ?? this.getDefaultHdPath()
+		this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : []
+		this.initRoot()
+		if (
+			opts.hdPath !== null &&
+			opts.hdPath !== undefined &&
+			opts.hdPath.length >= 13 &&
+			opts.hdPath[opts.hdPath.length - 1] === '1'
+		) {
+			this.root = this.root.derive(`m/1`)
+		}
+	}
 
-  async serialize(): Promise<DeserializeOption> {
-    return {
-      mfp: this.mfp,
-      keys: this.keys,
-      hdPath: this.hdPath,
-      activeIndexes: this.activeIndexes,
-    };
-  }
+	async serialize(): Promise<DeserializeOption> {
+		return {
+			mfp: this.mfp,
+			keys: this.keys,
+			hdPath: this.hdPath,
+			activeIndexes: this.activeIndexes,
+		}
+	}
 
-  async addAccounts(numberOfAccounts = 1) {
-    let count = numberOfAccounts;
-    let i = 0;
-    const pubkeys = [];
+	async addAccounts(numberOfAccounts = 1) {
+		let count = numberOfAccounts
+		let i = 0
+		const pubkeys = []
 
-    while (count) {
-      if (this.activeIndexes.includes(i)) {
-        i++;
-      } else {
-        const w = this.getWalletByIndex(i);
-        pubkeys.push(w.publicKey);
-        this.activeIndexes.push(i);
-        count--;
-      }
-    }
+		while (count) {
+			if (this.activeIndexes.includes(i)) {
+				i++
+			} else {
+				const w = this.getWalletByIndex(i)
+				pubkeys.push(w.publicKey)
+				this.activeIndexes.push(i)
+				count--
+			}
+		}
 
-    return Promise.resolve(pubkeys);
-  }
+		return Promise.resolve(pubkeys)
+	}
 
-  async getAccounts() {
-    return this.activeIndexes.map((i) => this.getWalletByIndex(i).publicKey);
-  }
+	async addChangeAddressAccounts(numberOfAccounts = 1) {
+		let count = numberOfAccounts
+		let i = 0
+		const pubkeys = []
 
-  async getAccountsWithBrand() {
-    return this.activeIndexes.map((i) => {
-      const w = this.getWalletByIndex(i);
-      return {
-        address: w.publicKey,
-        index: i,
-      }
-    });
-  }
+		while (count) {
+			if (this.activeIndexes.includes(i)) {
+				i++
+			} else {
+				const w = this.getChangeAddressWalletByIndex(i)
+				pubkeys.push(w.publicKey)
+				this.activeIndexes.push(i)
+				count--
+			}
+		}
 
-  getWalletByIndex(index: number): Wallet {
-    const child = this.root.derive(`m/0/${index}`);
-    return {
-      index,
-      path: `${this.hdPath}/${index}`,
-      publicKey: child.publicKey.toString("hex"),
-    };
-  }
+		return Promise.resolve(pubkeys)
+	}
 
-  removeAccount(publicKey: string) {
-    const index = this.activeIndexes.findIndex((i) => {
-      const w = this.getWalletByIndex(i);
-      return w.publicKey === publicKey;
-    });
-    if (index !== -1) {
-      this.activeIndexes.splice(index, 1);
-    }
-  }
+	async getAccounts() {
+		if (
+			this.hdPath !== null &&
+			this.hdPath !== undefined &&
+			this.hdPath.length >= 13 &&
+			this.hdPath[this.hdPath.length - 1] === '1'
+		) {
+			return this.activeIndexes.map((index) => {
+				const child = this.root.derive(`m/${index}`)
+				return child.publicKey.toString('hex')
+			})
+		}
+		return this.activeIndexes.map((i) => this.getWalletByIndex(i).publicKey)
+	}
 
-  async exportAccount(_publicKey: string) {
-    throw new Error("Not supported");
-  }
+	async getAccounts2() {
+		return this.activeIndexes.map((index) => {
+			const child = this.root.derive(`m/${index}`)
+			return {
+				index,
+				path: `${this.hdPath}/${index}`,
+				publicKey: child.publicKey.toString('hex'),
+			}
+		})
+	}
 
-  getFirstPage() {
-    this.page = 0;
-    return this.getPage(1);
-  }
+	async getAccountsWithBrand() {
+		return this.activeIndexes.map((i) => {
+			const w = this.getWalletByIndex(i)
+			return {
+				address: w.publicKey,
+				index: i,
+			}
+		})
+	}
 
-  getNextPage() {
-    return this.getPage(1);
-  }
+	getWalletByIndex(index: number): Wallet {
+		const child = this.root.derive(`m/0/${index}`)
+		return {
+			index,
+			path: `${this.hdPath}/${index}`,
+			publicKey: child.publicKey.toString('hex'),
+		}
+	}
 
-  getPreviousPage() {
-    return this.getPage(-1);
-  }
+	getChangeAddressWalletByIndex(index: number): Wallet {
+		const child = this.root.derive(`m/1/${index}`)
+		return {
+			index,
+			path: `${this.hdPath}/${index}`,
+			publicKey: child.publicKey.toString('hex'),
+		}
+	}
 
-  getAddresses(start: number, end: number) {
-    const from = start;
-    const to = end;
-    const accounts: { address: string; index: number }[] = [];
-    for (let i = from; i < to; i++) {
-      const w = this.getWalletByIndex(i);
-      accounts.push({
-        address: w.publicKey,
-        index: i + 1,
-      });
-    }
-    return accounts;
-  }
+	removeAccount(publicKey: string) {
+		const index = this.activeIndexes.findIndex((i) => {
+			const w = this.getWalletByIndex(i)
+			return w.publicKey === publicKey
+		})
+		if (index !== -1) {
+			this.activeIndexes.splice(index, 1)
+		}
+	}
 
-  async getPage(increment: number) {
-    this.page += increment;
+	async exportAccount(_publicKey: string) {
+		throw new Error('Not supported')
+	}
 
-    if (!this.page || this.page <= 0) {
-      this.page = 1;
-    }
+	getFirstPage() {
+		this.page = 0
+		return this.getPage(1)
+	}
 
-    const from = (this.page - 1) * this.perPage;
-    const to = from + this.perPage;
+	getNextPage() {
+		return this.getPage(1)
+	}
 
-    const accounts: { address: string; index: number }[] = [];
+	getPreviousPage() {
+		return this.getPage(-1)
+	}
 
-    for (let i = from; i < to; i++) {
-      const w = this.getWalletByIndex(i);
-      accounts.push({
-        address: w.publicKey,
-        index: i + 1,
-      });
-    }
+	getAddresses(start: number, end: number) {
+		const from = start
+		const to = end
+		const accounts: { address: string; index: number }[] = []
+		for (let i = from; i < to; i++) {
+			const w = this.getWalletByIndex(i)
+			accounts.push({
+				address: w.publicKey,
+				index: i + 1,
+			})
+		}
+		return accounts
+	}
 
-    return accounts;
-  }
+	async getPage(increment: number) {
+		this.page += increment
 
-  activeAccounts(indexes: number[]) {
-    const accounts: string[] = [];
-    for (const index of indexes) {
-      const w = this.getWalletByIndex(index);
-      
-      if (!this.activeIndexes.includes(index)) {
-        this.activeIndexes.push(index);
-      }
+		if (!this.page || this.page <= 0) {
+			this.page = 1
+		}
 
-      accounts.push(w.publicKey);
-    }
+		const from = (this.page - 1) * this.perPage
+		const to = from + this.perPage
 
-    return accounts;
-  }
+		const accounts: { address: string; index: number }[] = []
 
-  changeHdPath(hdPath: string) {
-    this.hdPath = hdPath;
+		for (let i = from; i < to; i++) {
+			const w = this.getWalletByIndex(i)
+			accounts.push({
+				address: w.publicKey,
+				index: i + 1,
+			})
+		}
 
-    this.initRoot();
+		return accounts
+	}
 
-    this.activeAccounts(this.activeIndexes);
-  }
+	activeAccounts(indexes: number[]) {
+		const accounts: string[] = []
+		for (const index of indexes) {
+			const w = this.getWalletByIndex(index)
 
-  getAccountByHdPath(hdPath: string, index: number) {
-    const root = this.getHDPublicKey(hdPath);
-    const child = root.derive(`m/0/${index}`);
-    return child.publicKey.toString("hex");
-  }
+			if (!this.activeIndexes.includes(index)) {
+				this.activeIndexes.push(index)
+			}
 
-  async genSignPsbtUr(psbtHex: string) {
-    const psbt = Psbt.fromHex(psbtHex);
-    const keystoneSDK = new KeystoneSDK({
-      origin: this.origin,
-    });
-    const ur = keystoneSDK.btc.generatePSBT(psbt.data.toBuffer());
-    return {
-      type: ur.type,
-      cbor: ur.cbor.toString("hex"),
-    }
-  }
+			accounts.push(w.publicKey)
+		}
 
-  async parseSignPsbtUr(type: string, cbor: string) {
-    const keystoneSDK = new KeystoneSDK({
-      origin: this.origin,
-    });
-    return keystoneSDK.btc.parsePSBT(new UR(Buffer.from(cbor, 'hex'), type));
-  }
+		return accounts
+	}
 
-  async genSignMsgUr(publicKey: string, text: string) {
-    const keystoneSDK = new KeystoneSDK({
-      origin: this.origin,
-    });
-    const i = this.activeIndexes.find((i) => this.getWalletByIndex(i).publicKey === publicKey);
-    if (i === undefined) {
-      throw new Error("publicKey not found");
-    }
-    const requestId = uuid.v4();
-    const ur = keystoneSDK.btc.generateSignRequest({
-      requestId,
-      signData: Buffer.from(text).toString("hex"),
-      dataType: KeystoneBitcoinSDK.DataType.message,
-      accounts: [{
-        path: `${this.hdPath}/${i}`,
-        xfp: this.mfp,
-      }],
-      origin: this.origin,
-    });
-    return {
-      requestId,
-      type: ur.type,
-      cbor: ur.cbor.toString("hex"),
-    }
-  }
+	changeHdPath(hdPath: string) {
+		this.hdPath = hdPath
 
-  async parseSignMsgUr(type: string, cbor: string) {
-    const keystoneSDK = new KeystoneSDK({
-      origin: this.origin,
-    });
-    return keystoneSDK.btc.parseSignature(new UR(Buffer.from(cbor, 'hex'), type));
-  }
+		this.initRoot()
 
-  async signMessage(publicKey: string, text: string) {
-    return 'Signing Message with Keystone should use genSignMsgUr and parseSignMsgUr';
-  }
+		this.activeAccounts(this.activeIndexes)
+	}
 
-  async verifyMessage(publicKey: string, text: string, sig: string) {
-    return verifyMessageOfECDSA(publicKey, text, sig);
-  }
+	changeChangeAddressHdPath(hdPath: string) {
+		this.hdPath = hdPath
+		// this.initRoot()
+		this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath())
+		this.root = this.root.derive(`m/1`)
+		this.activeIndexes = []
+		const accounts: string[] = []
+		for (const index of this.activeIndexes) {
+			const w = this.getChangeAddressWalletByIndex(index)
+
+			if (!this.activeIndexes.includes(index)) {
+				this.activeIndexes.push(index)
+			}
+			accounts.push(w.publicKey)
+		}
+		return accounts
+	}
+
+	getAccountByHdPath(hdPath: string, index: number) {
+		if (hdPath === "m/44'/0'/0'/1") {
+			const root = this.getHDPublicKey(hdPath)
+			const child = root.derive(`m/1/${index}`)
+			return child.publicKey.toString('hex')
+		}
+		const root = this.getHDPublicKey(hdPath)
+		const child = root.derive(`m/0/${index}`)
+		return child.publicKey.toString('hex')
+	}
+
+	getChangeAddressAccountByHdPath(hdPath: string, index: number) {
+		const root = this.getHDPublicKey(hdPath)
+		const child = root.derive(`m/1/${index}`)
+		return child.publicKey.toString('hex')
+	}
+
+	async genSignPsbtUr(psbtHex: string) {
+		const psbt = Psbt.fromHex(psbtHex)
+		const keystoneSDK = new KeystoneSDK({
+			origin: this.origin,
+		})
+		const ur = keystoneSDK.btc.generatePSBT(psbt.data.toBuffer())
+		return {
+			type: ur.type,
+			cbor: ur.cbor.toString('hex'),
+		}
+	}
+
+	async parseSignPsbtUr(type: string, cbor: string) {
+		const keystoneSDK = new KeystoneSDK({
+			origin: this.origin,
+		})
+		return keystoneSDK.btc.parsePSBT(new UR(Buffer.from(cbor, 'hex'), type))
+	}
+
+	async genSignMsgUr(publicKey: string, text: string) {
+		const keystoneSDK = new KeystoneSDK({
+			origin: this.origin,
+		})
+		const i = this.activeIndexes.find(
+			(i) => this.getWalletByIndex(i).publicKey === publicKey
+		)
+		if (i === undefined) {
+			throw new Error('publicKey not found')
+		}
+		const requestId = uuid.v4()
+		const ur = keystoneSDK.btc.generateSignRequest({
+			requestId,
+			signData: Buffer.from(text).toString('hex'),
+			dataType: KeystoneBitcoinSDK.DataType.message,
+			accounts: [
+				{
+					path: `${this.hdPath}/${i}`,
+					xfp: this.mfp,
+				},
+			],
+			origin: this.origin,
+		})
+		return {
+			requestId,
+			type: ur.type,
+			cbor: ur.cbor.toString('hex'),
+		}
+	}
+
+	async parseSignMsgUr(type: string, cbor: string) {
+		const keystoneSDK = new KeystoneSDK({
+			origin: this.origin,
+		})
+		return keystoneSDK.btc.parseSignature(
+			new UR(Buffer.from(cbor, 'hex'), type)
+		)
+	}
+
+	async signMessage(publicKey: string, text: string) {
+		return 'Signing Message with Keystone should use genSignMsgUr and parseSignMsgUr'
+	}
+
+	async verifyMessage(publicKey: string, text: string, sig: string) {
+		return verifyMessageOfECDSA(publicKey, text, sig)
+	}
 }
