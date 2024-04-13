@@ -55,7 +55,7 @@ export function genDummyUtxo(
       ticker?: string;
     }[];
     runes?: {
-      runeId: string;
+      runeid: string;
       amount: string;
     }[];
   },
@@ -573,7 +573,7 @@ export async function dummySendRunes({
   toAddress,
   dump,
   enableRBF,
-  runeId,
+  runeid,
   runeAmount,
   outputValue,
 }: {
@@ -585,7 +585,7 @@ export async function dummySendRunes({
   toAddress: string;
   dump?: boolean;
   enableRBF?: boolean;
-  runeId: string | number;
+  runeid: string;
   runeAmount: string;
   outputValue: number;
 }) {
@@ -598,7 +598,7 @@ export async function dummySendRunes({
     assetAddress: assetWallet.address,
     feeRate,
     enableRBF,
-    runeId,
+    runeid,
     runeAmount,
     outputValue,
   });

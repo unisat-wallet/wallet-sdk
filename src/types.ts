@@ -45,7 +45,7 @@ export interface UnspentOutput {
     ticker?: string;
   }[];
   runes?: {
-    runeId: string;
+    runeid: string;
     amount: string;
   }[];
   rawtx?: string;

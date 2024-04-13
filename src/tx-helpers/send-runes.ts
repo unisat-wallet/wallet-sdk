@@ -16,7 +16,7 @@ export async function sendRunes({
   btcAddress,
   toAddress,
   networkType,
-  runeId,
+  runeid,
   runeAmount,
   outputValue,
   feeRate,
@@ -28,7 +28,7 @@ export async function sendRunes({
   btcAddress: string;
   toAddress: string;
   networkType: NetworkType;
-  runeId: string | number;
+  runeid: string;
   runeAmount: string;
   outputValue: number;
   feeRate: number;
@@ -64,7 +64,7 @@ export async function sendRunes({
   assetUtxos.forEach((v) => {
     if (v.runes) {
       v.runes.forEach((w) => {
-        if (w.runeId === runeId) {
+        if (w.runeid === runeid) {
           fromRuneAmount = fromRuneAmount.plus(bigInt(w.amount));
         }
       });
@@ -78,26 +78,28 @@ export async function sendRunes({
   }
 
   let payload = [];
-  let _runeId: RuneId;
-  if (typeof runeId === "string") {
-    _runeId = RuneId.fromString(runeId as string);
-  } else {
-    _runeId = RuneId.fromBigInt(runeId as number);
-  }
-  varint.encodeToVec(0, payload);
+  let runeId: RuneId = RuneId.fromString(runeid);
 
-  // add send data
-  varint.encodeToVec(_runeId.block, payload);
-  varint.encodeToVec(_runeId.tx, payload);
-  varint.encodeToVec(runeAmount, payload);
-  varint.encodeToVec(1, payload);
+  varint.encodeToVec(0, payload);
 
   if (changedRuneAmount.gt(0)) {
     // add changed data
-    varint.encodeToVec(_runeId.block, payload);
-    varint.encodeToVec(_runeId.tx, payload);
+    varint.encodeToVec(runeId.block, payload);
+    varint.encodeToVec(runeId.tx, payload);
     varint.encodeToVec(changedRuneAmount, payload);
+    varint.encodeToVec(1, payload);
+
+    // add send data
+    varint.encodeToVec(0, payload);
+    varint.encodeToVec(0, payload);
+    varint.encodeToVec(runeAmount, payload);
     varint.encodeToVec(2, payload);
+  } else {
+    // add send data
+    varint.encodeToVec(runeId.block, payload);
+    varint.encodeToVec(runeId.tx, payload);
+    varint.encodeToVec(runeAmount, payload);
+    varint.encodeToVec(1, payload);
   }
 
   // add op_return
@@ -110,13 +112,13 @@ export async function sendRunes({
     0
   );
 
-  // add receiver
-  tx.addOutput(toAddress, outputValue);
-
   if (changedRuneAmount.gt(0)) {
     // add change
     tx.addOutput(assetAddress, outputValue);
   }
+
+  // add receiver
+  tx.addOutput(toAddress, outputValue);
 
   // add btc
   const _toSignInputs = await tx.addSufficientUtxosForFee(btcUtxos, true);

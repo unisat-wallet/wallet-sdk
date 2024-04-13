@@ -37,7 +37,7 @@ describe("send runes", () => {
           assetUtxo: genDummyUtxo(fromAssetWallet, 546, {
             runes: [
               {
-                runeId: "1000:10",
+                runeid: "1000:10",
                 amount: "100",
               },
             ],
@@ -45,7 +45,7 @@ describe("send runes", () => {
           btcWallet: fromBtcWallet,
           btcUtxos: [genDummyUtxo(fromBtcWallet, 10000)],
           feeRate: 1,
-          runeId: "1000:10",
+          runeid: "1000:10",
           runeAmount: "100",
           outputValue: 546,
         });
@@ -61,7 +61,7 @@ describe("send runes", () => {
           assetUtxo: genDummyUtxo(fromAssetWallet, 546, {
             runes: [
               {
-                runeId: "1000:10",
+                runeid: "1000:10",
                 amount: "200",
               },
             ],
@@ -69,7 +69,7 @@ describe("send runes", () => {
           btcWallet: fromBtcWallet,
           btcUtxos: [genDummyUtxo(fromBtcWallet, 10000)],
           feeRate: 1,
-          runeId: "1000:10",
+          runeid: "1000:10",
           runeAmount: "100",
           outputValue: 546,
         });
