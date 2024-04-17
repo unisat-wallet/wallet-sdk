@@ -1,6 +1,6 @@
 {
   "name": "@unisat/wallet-sdk",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "UniSat Wallet SDK",
   "keywords": [
     "bitcoin",
@@ -34,8 +34,8 @@
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.0.5",
-    "big-integer": "^1.6.52",
     "@keystonehq/keystone-sdk": "^0.3.0",
+    "big-integer": "^1.6.52",
     "bignumber.js": "^9.1.2",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.0",
