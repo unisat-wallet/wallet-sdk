@@ -295,16 +295,7 @@ export class KeystoneKeyring extends EventEmitter {
 		this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath())
 		this.root = this.root.derive(`m/1`)
 		this.activeIndexes = []
-		const accounts: string[] = []
-		for (const index of this.activeIndexes) {
-			const w = this.getChangeAddressWalletByIndex(index)
-
-			if (!this.activeIndexes.includes(index)) {
-				this.activeIndexes.push(index)
-			}
-			accounts.push(w.publicKey)
-		}
-		return accounts
+		return []
 	}
 
 	getAccountByHdPath(hdPath: string, index: number) {
