@@ -1,255 +1,253 @@
-import * as bip39 from "bip39";
-import bitcore from "bitcore-lib";
-import * as hdkey from "hdkey";
-import { ECPair, ECPairInterface, bitcoin } from "../bitcoin-core";
-import { SimpleKeyring } from "./simple-keyring";
+import * as bip39 from 'bip39'
+import bitcore from 'bitcore-lib'
+import * as hdkey from 'hdkey'
+import { ECPair, ECPairInterface, bitcoin } from '../bitcoin-core'
+import { SimpleKeyring } from './simple-keyring'
 
-const hdPathString = "m/44'/0'/0'/0";
-const type = "HD Key Tree";
+const hdPathString = "m/44'/0'/0'/0"
+const type = 'HD Key Tree'
 
 interface DeserializeOption {
-  hdPath?: string;
-  mnemonic?: string;
-  xpriv?: string;
-  activeIndexes?: number[];
-  passphrase?: string;
+	hdPath?: string
+	mnemonic?: string
+	xpriv?: string
+	activeIndexes?: number[]
+	passphrase?: string
 }
 
 export class HdKeyring extends SimpleKeyring {
-  static type = type;
+	static type = type
 
-  type = type;
-  mnemonic: string = null;
-  xpriv: string = null;
-  passphrase: string;
-  network: bitcoin.Network = bitcoin.networks.bitcoin;
+	type = type
+	mnemonic: string = null
+	xpriv: string = null
+	passphrase: string
+	network: bitcoin.Network = bitcoin.networks.bitcoin
 
-  hdPath = hdPathString;
-  root: bitcore.HDPrivateKey = null;
-  hdWallet?: any;
-  wallets: ECPairInterface[] = [];
-  private _index2wallet: Record<number, [string, ECPairInterface]> = {};
-  activeIndexes: number[] = [];
-  page = 0;
-  perPage = 5;
+	hdPath = hdPathString
+	root: bitcore.HDPrivateKey = null
+	hdWallet?: any
+	wallets: ECPairInterface[] = []
+	private _index2wallet: Record<number, [string, ECPairInterface]> = {}
+	activeIndexes: number[] = []
+	page = 0
+	perPage = 5
 
-  /* PUBLIC METHODS */
-  constructor(opts?: DeserializeOption) {
-    super(null);
-    if (opts) {
-      this.deserialize(opts);
-    }
-  }
+	/* PUBLIC METHODS */
+	constructor(opts?: DeserializeOption) {
+		super(null)
+		if (opts) {
+			this.deserialize(opts)
+		}
+	}
 
-  async serialize(): Promise<DeserializeOption> {
-    return {
-      mnemonic: this.mnemonic,
-      xpriv: this.xpriv,
-      activeIndexes: this.activeIndexes,
-      hdPath: this.hdPath,
-      passphrase: this.passphrase,
-    };
-  }
+	async serialize(): Promise<DeserializeOption> {
+		return {
+			mnemonic: this.mnemonic,
+			xpriv: this.xpriv,
+			activeIndexes: this.activeIndexes,
+			hdPath: this.hdPath,
+			passphrase: this.passphrase,
+		}
+	}
 
-  async deserialize(_opts: DeserializeOption = {}) {
-    if (this.root) {
-      throw new Error(
-        "Btc-Hd-Keyring: Secret recovery phrase already provided"
-      );
-    }
-    let opts = _opts as DeserializeOption;
-    this.wallets = [];
-    this.mnemonic = null;
-    this.xpriv = null;
-    this.root = null;
+	async deserialize(_opts: DeserializeOption = {}) {
+		if (this.root) {
+			throw new Error(
+				'Btc-Hd-Keyring: Secret recovery phrase already provided'
+			)
+		}
+		let opts = _opts as DeserializeOption
+		this.wallets = []
+		this.mnemonic = null
+		this.xpriv = null
+		this.root = null
+		this.hdPath = opts.hdPath || hdPathString
+		if (opts.passphrase) {
+			this.passphrase = opts.passphrase
+		}
 
-    this.hdPath = opts.hdPath || hdPathString;
+		if (opts.mnemonic) {
+			this.initFromMnemonic(opts.mnemonic)
+		} else if (opts.xpriv) {
+			this.initFromXpriv(opts.xpriv)
+		}
 
-    if (opts.passphrase) {
-      this.passphrase = opts.passphrase;
-    }
+		if (opts.activeIndexes) {
+			this.activeAccounts(opts.activeIndexes)
+		}
+	}
 
-    if (opts.mnemonic) {
-      this.initFromMnemonic(opts.mnemonic);
-    } else if (opts.xpriv) {
-      this.initFromXpriv(opts.xpriv);
-    }
+	initFromXpriv(xpriv: string) {
+		if (this.root) {
+			throw new Error(
+				'Btc-Hd-Keyring: Secret recovery phrase already provided'
+			)
+		}
 
-    if (opts.activeIndexes) {
-      this.activeAccounts(opts.activeIndexes);
-    }
-  }
+		this.xpriv = xpriv
+		this._index2wallet = {}
 
-  initFromXpriv(xpriv: string) {
-    if (this.root) {
-      throw new Error(
-        "Btc-Hd-Keyring: Secret recovery phrase already provided"
-      );
-    }
+		this.hdWallet = hdkey.fromJSON({ xpriv })
+		this.root = this.hdWallet
+	}
 
-    this.xpriv = xpriv;
-    this._index2wallet = {};
+	initFromMnemonic(mnemonic: string) {
+		if (this.root) {
+			throw new Error(
+				'Btc-Hd-Keyring: Secret recovery phrase already provided'
+			)
+		}
 
-    this.hdWallet = hdkey.fromJSON({ xpriv });
-    this.root = this.hdWallet;
-  }
+		this.mnemonic = mnemonic
+		this._index2wallet = {}
 
-  initFromMnemonic(mnemonic: string) {
-    if (this.root) {
-      throw new Error(
-        "Btc-Hd-Keyring: Secret recovery phrase already provided"
-      );
-    }
+		const seed = bip39.mnemonicToSeedSync(mnemonic, this.passphrase)
+		this.hdWallet = hdkey.fromMasterSeed(seed)
+		this.root = this.hdWallet.derive(this.hdPath)
+	}
 
-    this.mnemonic = mnemonic;
-    this._index2wallet = {};
+	changeHdPath(hdPath: string) {
+		if (!this.mnemonic) {
+			throw new Error('Btc-Hd-Keyring: Not support')
+		}
 
-    const seed = bip39.mnemonicToSeedSync(mnemonic, this.passphrase);
-    this.hdWallet = hdkey.fromMasterSeed(seed);
-    this.root = this.hdWallet.derive(this.hdPath);
-  }
+		this.hdPath = hdPath
 
-  changeHdPath(hdPath: string) {
-    if (!this.mnemonic) {
-      throw new Error("Btc-Hd-Keyring: Not support");
-    }
+		this.root = this.hdWallet.derive(this.hdPath)
 
-    this.hdPath = hdPath;
+		const indexes = this.activeIndexes
+		this._index2wallet = {}
+		this.activeIndexes = []
+		this.wallets = []
+		this.activeAccounts(indexes)
+	}
 
-    this.root = this.hdWallet.derive(this.hdPath);
+	getAccountByHdPath(hdPath: string, index: number) {
+		if (!this.mnemonic) {
+			throw new Error('Btc-Hd-Keyring: Not support')
+		}
+		const root = this.hdWallet.derive(hdPath)
+		const child = root!.deriveChild(index)
+		const ecpair = ECPair.fromPrivateKey(child.privateKey, {
+			network: this.network,
+		})
+		const address = ecpair.publicKey.toString('hex')
+		return address
+	}
 
-    const indexes = this.activeIndexes;
-    this._index2wallet = {};
-    this.activeIndexes = [];
-    this.wallets = [];
-    this.activeAccounts(indexes);
-  }
+	addAccounts(numberOfAccounts = 1) {
+		let count = numberOfAccounts
+		let currentIdx = 0
+		const newWallets: ECPairInterface[] = []
 
-  getAccountByHdPath(hdPath: string, index: number) {
-    if (!this.mnemonic) {
-      throw new Error("Btc-Hd-Keyring: Not support");
-    }
-    const root = this.hdWallet.derive(hdPath);
-    const child = root!.deriveChild(index);
-    const ecpair = ECPair.fromPrivateKey(child.privateKey, {
-      network: this.network,
-    });
-    const address = ecpair.publicKey.toString("hex");
-    return address;
-  }
+		while (count) {
+			const [, wallet] = this._addressFromIndex(currentIdx)
+			if (this.wallets.includes(wallet)) {
+				currentIdx++
+			} else {
+				this.wallets.push(wallet)
+				newWallets.push(wallet)
+				this.activeIndexes.push(currentIdx)
+				count--
+			}
+		}
 
-  addAccounts(numberOfAccounts = 1) {
-    let count = numberOfAccounts;
-    let currentIdx = 0;
-    const newWallets: ECPairInterface[] = [];
+		const hexWallets = newWallets.map((w) => {
+			return w.publicKey.toString('hex')
+		})
 
-    while (count) {
-      const [, wallet] = this._addressFromIndex(currentIdx);
-      if (this.wallets.includes(wallet)) {
-        currentIdx++;
-      } else {
-        this.wallets.push(wallet);
-        newWallets.push(wallet);
-        this.activeIndexes.push(currentIdx);
-        count--;
-      }
-    }
+		return Promise.resolve(hexWallets)
+	}
 
-    const hexWallets = newWallets.map((w) => {
-      return w.publicKey.toString("hex");
-    });
+	activeAccounts(indexes: number[]) {
+		const accounts: string[] = []
+		for (const index of indexes) {
+			const [address, wallet] = this._addressFromIndex(index)
+			this.wallets.push(wallet)
+			this.activeIndexes.push(index)
 
-    return Promise.resolve(hexWallets);
-  }
+			accounts.push(address)
+		}
 
-  activeAccounts(indexes: number[]) {
-    const accounts: string[] = [];
-    for (const index of indexes) {
-      const [address, wallet] = this._addressFromIndex(index);
-      this.wallets.push(wallet);
-      this.activeIndexes.push(index);
+		return accounts
+	}
 
-      accounts.push(address);
-    }
+	getFirstPage() {
+		this.page = 0
+		return this.__getPage(1)
+	}
 
-    return accounts;
-  }
+	getNextPage() {
+		return this.__getPage(1)
+	}
 
-  getFirstPage() {
-    this.page = 0;
-    return this.__getPage(1);
-  }
+	getPreviousPage() {
+		return this.__getPage(-1)
+	}
 
-  getNextPage() {
-    return this.__getPage(1);
-  }
+	getAddresses(start: number, end: number) {
+		const from = start
+		const to = end
+		const accounts: { address: string; index: number }[] = []
+		for (let i = from; i < to; i++) {
+			const [address] = this._addressFromIndex(i)
+			accounts.push({
+				address,
+				index: i + 1,
+			})
+		}
+		return accounts
+	}
 
-  getPreviousPage() {
-    return this.__getPage(-1);
-  }
+	async __getPage(increment: number) {
+		this.page += increment
 
-  getAddresses(start: number, end: number) {
-    const from = start;
-    const to = end;
-    const accounts: { address: string; index: number }[] = [];
-    for (let i = from; i < to; i++) {
-      const [address] = this._addressFromIndex(i);
-      accounts.push({
-        address,
-        index: i + 1,
-      });
-    }
-    return accounts;
-  }
+		if (!this.page || this.page <= 0) {
+			this.page = 1
+		}
 
-  async __getPage(increment: number) {
-    this.page += increment;
+		const from = (this.page - 1) * this.perPage
+		const to = from + this.perPage
 
-    if (!this.page || this.page <= 0) {
-      this.page = 1;
-    }
+		const accounts: { address: string; index: number }[] = []
 
-    const from = (this.page - 1) * this.perPage;
-    const to = from + this.perPage;
+		for (let i = from; i < to; i++) {
+			const [address] = this._addressFromIndex(i)
+			accounts.push({
+				address,
+				index: i + 1,
+			})
+		}
 
-    const accounts: { address: string; index: number }[] = [];
+		return accounts
+	}
 
-    for (let i = from; i < to; i++) {
-      const [address] = this._addressFromIndex(i);
-      accounts.push({
-        address,
-        index: i + 1,
-      });
-    }
+	async getAccounts() {
+		return this.wallets.map((w) => {
+			return w.publicKey.toString('hex')
+		})
+	}
 
-    return accounts;
-  }
+	getIndexByAddress(address: string) {
+		for (const key in this._index2wallet) {
+			if (this._index2wallet[key][0] === address) {
+				return Number(key)
+			}
+		}
+		return null
+	}
 
-  async getAccounts() {
-    return this.wallets.map((w) => {
-      return w.publicKey.toString("hex");
-    });
-  }
+	private _addressFromIndex(i: number): [string, ECPairInterface] {
+		if (!this._index2wallet[i]) {
+			const child = this.root!.deriveChild(i)
+			const ecpair = ECPair.fromPrivateKey(child.privateKey, {
+				network: this.network,
+			})
+			const address = ecpair.publicKey.toString('hex')
+			this._index2wallet[i] = [address, ecpair]
+		}
 
-  getIndexByAddress(address: string) {
-    for (const key in this._index2wallet) {
-      if (this._index2wallet[key][0] === address) {
-        return Number(key);
-      }
-    }
-    return null;
-  }
-
-  private _addressFromIndex(i: number): [string, ECPairInterface] {
-    if (!this._index2wallet[i]) {
-      const child = this.root!.deriveChild(i);
-      const ecpair = ECPair.fromPrivateKey(child.privateKey, {
-        network: this.network,
-      });
-      const address = ecpair.publicKey.toString("hex");
-      this._index2wallet[i] = [address, ecpair];
-    }
-
-    return this._index2wallet[i];
-  }
+		return this._index2wallet[i]
+	}
 }
