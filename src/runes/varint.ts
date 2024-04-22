@@ -20,11 +20,10 @@ function try_decode(buf) {
 }
 
 function encodeToVec(n, v) {
-  const bigint_128 = bigInt(128);
   n = bigInt(n);
-  while (n.gt(bigint_128)) {
-    v.push(n.and(0x7f).or(0x80).toJSNumber());
-    n = n.divide(bigint_128);
+  while (n.shiftRight(7).greater(0)) {
+    v.push(n.and(0b01111111).or(0b10000000).toJSNumber());
+    n = n.shiftRight(7);
   }
   v.push(n.toJSNumber());
 }
