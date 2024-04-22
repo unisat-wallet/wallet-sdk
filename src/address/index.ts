@@ -38,6 +38,11 @@ export function publicKeyToPayment(
       network,
       redeem: data,
     });
+  } else if (type === AddressType.RAW_P2TR) {
+    return bitcoin.payments.p2tr({
+      pubkey,
+      network,
+    });
   }
 }
 

@@ -340,5 +340,54 @@ describe("bitcoin-simple-keyring", () => {
       psbt.extractTransaction();
       expect(psbt.getFee() == 500).to.be.true;
     });
+
+    it("sign Raw P2TR input", async function () {
+      const network = bitcoin.networks.bitcoin;
+
+      const newKeyring = new SimpleKeyring();
+      await newKeyring.addAccounts(1);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const payment = bitcoin.payments.p2tr({
+        pubkey: toXOnly(Buffer.from(pubkey, "hex")),
+        network,
+      });
+
+      const prevoutHash = Buffer.from(
+          "0000000000000000000000000000000000000000000000000000000000000000",
+          "hex"
+      );
+      const value = 10000;
+      const prevoutIndex = 0xffffffff;
+      const sequence = 0;
+      const txToSpend = new bitcoin.Transaction();
+      txToSpend.version = 0;
+      txToSpend.addInput(prevoutHash, prevoutIndex, sequence);
+      txToSpend.addOutput(payment.output!, value);
+
+      const psbt = new bitcoin.Psbt({ network });
+      psbt.addInput({
+        hash: txToSpend.getHash(),
+        index: 0,
+        sequence: 0,
+        witnessUtxo: {
+          script: payment.output!,
+          value,
+        },
+      });
+      psbt.addOutput({
+        address: payment.address!,
+        value: value - 500,
+      });
+      await newKeyring.signTransaction(
+          psbt,
+          [{ index: 0, publicKey: pubkey, rawTaprootPubkey: true }],
+          { network: bitcoin.networks.bitcoin }
+      );
+
+      psbt.finalizeAllInputs();
+      psbt.extractTransaction();
+      expect(psbt.getFee() == 500).to.be.true;
+    });
   });
 });

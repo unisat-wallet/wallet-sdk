@@ -61,4 +61,5 @@ export enum AddressType {
   P2WSH,
   P2SH,
   UNKNOWN,
+  RAW_P2TR, // for recoveries only
 }
