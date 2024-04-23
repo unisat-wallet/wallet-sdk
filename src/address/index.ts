@@ -1,6 +1,7 @@
 import { bitcoin } from "../bitcoin-core";
 import { NetworkType, toPsbtNetwork } from "../network";
 import { AddressType } from "../types";
+import {toXOnly} from "../utils";
 
 /**
  * Convert public key to bitcoin payment object.
@@ -40,7 +41,7 @@ export function publicKeyToPayment(
     });
   } else if (type === AddressType.RAW_P2TR) {
     return bitcoin.payments.p2tr({
-      pubkey,
+      pubkey: toXOnly(pubkey),
       network,
     });
   }

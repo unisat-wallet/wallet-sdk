@@ -36,7 +36,7 @@ const p2pkh_data = {
 }
 
 const raw_p2tr_data = {
-	pubkey: 'a276a2f72b2581bbb325c9d51714bd65686a9af95d7df4d625b711d7203fd7ac',
+	pubkey: '02a276a2f72b2581bbb325c9d51714bd65686a9af95d7df4d625b711d7203fd7ac',
 	mainnet_address: 'bc1p5fm29aetykqmhve9e823w99av45x4xhet47lf439kugawgpl67kqtgzm0z',
 }
 

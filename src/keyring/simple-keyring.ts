@@ -1,4 +1,5 @@
 import { isTaprootInput, serializeTaprootSignature } from "bitcoinjs-lib/src/psbt/bip371";
+import { bech32 } from "bech32";
 import { decode } from "bs58check";
 import { EventEmitter } from "events";
 import { ECPair, ECPairInterface, bitcoin } from "../bitcoin-core";
@@ -31,7 +32,10 @@ export class SimpleKeyring extends EventEmitter {
 
     this.wallets = privateKeys.map((key) => {
       let buf: Buffer;
-      if (key.length === 64) {
+      if (key.startsWith('nsec')) {
+        const { words } = bech32.decode(key)
+        buf = Buffer.from(new Uint8Array(bech32.fromWords(words)))
+      } else if (key.length === 64) {
         // privateKey
         buf = Buffer.from(key, "hex");
       } else {
