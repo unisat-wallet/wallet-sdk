@@ -182,15 +182,6 @@ describe('bitcoin-keystone-keyring', () => {
 			)
 		})
 
-		// get account by receive address
-		it('get change address account by hdPath', async () => {
-			const keyring = new KeystoneKeyring(initOpts)
-			const account = keyring.getAccountByHdPath("m/44'/0'/0'/1", 0)
-			expect(account).eq(
-				'026cc2828e3163f567fa63a20215260dba29bca82b3a1a4e81622fd02a275e2f99'
-			)
-		})
-
 		it('get change address account by hdPath', async () => {
 			const keyring = new KeystoneKeyring(initOpts)
 			const account = keyring.getChangeAddressAccountByHdPath(

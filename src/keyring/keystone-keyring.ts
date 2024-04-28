@@ -291,7 +291,6 @@ export class KeystoneKeyring extends EventEmitter {
 
 	changeChangeAddressHdPath(hdPath: string) {
 		this.hdPath = hdPath
-		// this.initRoot()
 		this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath())
 		this.root = this.root.derive(`m/1`)
 		this.activeIndexes = []
@@ -299,11 +298,6 @@ export class KeystoneKeyring extends EventEmitter {
 	}
 
 	getAccountByHdPath(hdPath: string, index: number) {
-		if (hdPath === "m/44'/0'/0'/1") {
-			const root = this.getHDPublicKey(hdPath)
-			const child = root.derive(`m/1/${index}`)
-			return child.publicKey.toString('hex')
-		}
 		const root = this.getHDPublicKey(hdPath)
 		const child = root.derive(`m/0/${index}`)
 		return child.publicKey.toString('hex')
@@ -338,9 +332,26 @@ export class KeystoneKeyring extends EventEmitter {
 		const keystoneSDK = new KeystoneSDK({
 			origin: this.origin,
 		})
-		const i = this.activeIndexes.find(
-			(i) => this.getWalletByIndex(i).publicKey === publicKey
-		)
+		let i = undefined
+		if (
+			this.hdPath !== null &&
+			this.hdPath !== undefined &&
+			this.hdPath.length >= 13 &&
+			this.hdPath[this.hdPath.length - 1] === '1'
+		) {
+			const root = this.getHDPublicKey(this.hdPath)
+			i = this.activeIndexes.find((i) => {
+				const child = root.derive(`m/1/${i}`)
+				if (child.publicKey.toString('hex') === publicKey) {
+					return true
+				}
+			})
+		} else {
+			i = this.activeIndexes.find(
+				(i) => this.getWalletByIndex(i).publicKey === publicKey
+			)
+		}
+
 		if (i === undefined) {
 			throw new Error('publicKey not found')
 		}
