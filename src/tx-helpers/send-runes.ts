@@ -61,9 +61,12 @@ export async function sendRunes({
   });
 
   let fromRuneAmount = bigInt(0);
+  let hasMultipleRunes = false;
+  let runesMap = {};
   assetUtxos.forEach((v) => {
     if (v.runes) {
       v.runes.forEach((w) => {
+        runesMap[w.runeid] = true;
         if (w.runeid === runeid) {
           fromRuneAmount = fromRuneAmount.plus(bigInt(w.amount));
         }
@@ -71,10 +74,19 @@ export async function sendRunes({
     }
   });
 
+  if (Object.keys(runesMap).length > 1) {
+    hasMultipleRunes = true;
+  }
+
   const changedRuneAmount = fromRuneAmount.minus(bigInt(runeAmount));
 
   if (changedRuneAmount.lt(0)) {
     throw new WalletUtilsError(ErrorCodes.INSUFFICIENT_ASSET_UTXO);
+  }
+
+  let needChange = false;
+  if (hasMultipleRunes || changedRuneAmount.gt(0)) {
+    needChange = true;
   }
 
   let payload = [];
@@ -82,28 +94,22 @@ export async function sendRunes({
 
   varint.encodeToVec(0, payload);
 
-  if (changedRuneAmount.gt(0)) {
-    // add changed data
-    varint.encodeToVec(runeId.block, payload);
-    varint.encodeToVec(runeId.tx, payload);
-    varint.encodeToVec(changedRuneAmount, payload);
-    varint.encodeToVec(1, payload);
-
-    // add send data
-    varint.encodeToVec(0, payload);
-    varint.encodeToVec(0, payload);
-    varint.encodeToVec(runeAmount, payload);
+  // add send data
+  varint.encodeToVec(runeId.block, payload);
+  varint.encodeToVec(runeId.tx, payload);
+  varint.encodeToVec(runeAmount, payload);
+  if (needChange) {
+    // 1 is to change
+    // 2 is to send
     varint.encodeToVec(2, payload);
   } else {
-    // add send data
-    varint.encodeToVec(runeId.block, payload);
-    varint.encodeToVec(runeId.tx, payload);
-    varint.encodeToVec(runeAmount, payload);
+    // 1 is to send
     varint.encodeToVec(1, payload);
   }
 
   // add op_return
   tx.addScriptOutput(
+    // OUTPUT_0
     bitcoin.script.compile([
       bitcoin.opcodes.OP_RETURN,
       bitcoin.opcodes.OP_13,
@@ -112,12 +118,12 @@ export async function sendRunes({
     0
   );
 
-  if (changedRuneAmount.gt(0)) {
+  if (needChange) {
+    // OUTPUT_1
     // add change
     tx.addOutput(assetAddress, outputValue);
   }
 
-  // add receiver
   tx.addOutput(toAddress, outputValue);
 
   // add btc

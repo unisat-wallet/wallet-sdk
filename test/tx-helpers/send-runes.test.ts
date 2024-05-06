@@ -77,6 +77,38 @@ describe("send runes", () => {
         expect(ret.outputCount).eq(4);
         expectFeeRate(addressType, ret.feeRate, 1);
       });
+
+      it("send runes with mutlple runes utxo", async function () {
+        const ret = await dummySendRunes({
+          toAddress: toWallet.address,
+          assetWallet: fromAssetWallet,
+          assetUtxo: genDummyUtxo(fromAssetWallet, 546, {
+            runes: [
+              {
+                runeid: "1000:10",
+                amount: "100",
+              },
+              {
+                runeid: "1001:10",
+                amount: "100",
+              },
+              {
+                runeid: "1002:10",
+                amount: "100",
+              },
+            ],
+          }),
+          btcWallet: fromBtcWallet,
+          btcUtxos: [genDummyUtxo(fromBtcWallet, 10000)],
+          feeRate: 1,
+          runeid: "1000:10",
+          runeAmount: "100",
+          outputValue: 546,
+        });
+        expect(ret.inputCount).eq(2);
+        expect(ret.outputCount).eq(4);
+        expectFeeRate(addressType, ret.feeRate, 1);
+      });
     });
   });
 });
