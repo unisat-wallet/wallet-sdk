@@ -1,5 +1,7 @@
 const gulp = require("gulp");
 const babel = require("gulp-babel");
+const webpack = require("webpack");
+const webpackStream = require("webpack-stream");
 const ts = require("gulp-typescript");
 const tsProject = ts.createProject("tsconfig.json");
 const SRC_PATH = "src";
@@ -17,6 +19,7 @@ gulp.task("build-esm", () => {
   return gulp
     .src([`${SRC_PATH}/**/*.ts`])
     .pipe(babel())
+    .pipe(webpackStream(require("./webpack.config.js"), webpack))
     .pipe(gulp.dest(BUILD_MODE.ESM.PATH));
 });
 
