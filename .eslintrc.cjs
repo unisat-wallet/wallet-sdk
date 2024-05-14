@@ -1,6 +1,10 @@
 /* eslint-env node */
 module.exports = {
-  extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+  ],
   parserOptions: {
     project: ["./tsconfig.json"],
   },
@@ -18,5 +22,6 @@ module.exports = {
     "no-empty": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-floating-promises": ["error"],
+    "prettier/prettier": "error",
   },
 };
