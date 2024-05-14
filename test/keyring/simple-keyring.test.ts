@@ -11,6 +11,12 @@ const testAccount = {
   address: "02b57a152325231723ee9faabba930108b19c11a391751572f380d71b447317ae7",
 };
 
+const testNsecAccount = {
+  nsec: "nsec17ynu3aayp7acykfe6fnrfwew30xlk5z2xa4kqvh6y3v5lkfc9gaqe8g5s6",
+  privateKey: "f127c8f7a40fbb825939d26634bb2e8bcdfb504a376b6032fa24594fd9382a3a",
+  publicKey: "02a276a2f72b2581bbb325c9d51714bd65686a9af95d7df4d625b711d7203fd7ac"
+}
+
 describe("bitcoin-simple-keyring", () => {
   let keyring: SimpleKeyring;
   beforeEach(() => {
@@ -37,6 +43,19 @@ describe("bitcoin-simple-keyring", () => {
       const serialized = await keyring.serialize();
       expect(serialized).length(1);
       expect(serialized[0]).eq(testAccount.key);
+    });
+  });
+
+  describe("#handles an nsec formatted private key", function () {
+    it("properly imports nsec", async function () {
+      await keyring.deserialize([testNsecAccount.nsec]);
+      const publicKeys = await keyring.getAccounts();
+      console.log(publicKeys)
+      expect(publicKeys).length(1);
+      expect(publicKeys[0]).eq(testNsecAccount.publicKey);
+      const privateKeys = await keyring.serialize();
+      expect(privateKeys).length(1);
+      expect(privateKeys[0]).eq(testNsecAccount.privateKey);
     });
   });
 
@@ -335,6 +354,55 @@ describe("bitcoin-simple-keyring", () => {
           { network: bitcoin.networks.bitcoin }
         );
       }
+
+      psbt.finalizeAllInputs();
+      psbt.extractTransaction();
+      expect(psbt.getFee() == 500).to.be.true;
+    });
+
+    it("sign Raw P2TR input", async function () {
+      const network = bitcoin.networks.bitcoin;
+
+      const newKeyring = new SimpleKeyring();
+      await newKeyring.addAccounts(1);
+      const accounts = await newKeyring.getAccounts();
+      const pubkey = accounts[0];
+      const payment = bitcoin.payments.p2tr({
+        pubkey: toXOnly(Buffer.from(pubkey, "hex")),
+        network,
+      });
+
+      const prevoutHash = Buffer.from(
+          "0000000000000000000000000000000000000000000000000000000000000000",
+          "hex"
+      );
+      const value = 10000;
+      const prevoutIndex = 0xffffffff;
+      const sequence = 0;
+      const txToSpend = new bitcoin.Transaction();
+      txToSpend.version = 0;
+      txToSpend.addInput(prevoutHash, prevoutIndex, sequence);
+      txToSpend.addOutput(payment.output!, value);
+
+      const psbt = new bitcoin.Psbt({ network });
+      psbt.addInput({
+        hash: txToSpend.getHash(),
+        index: 0,
+        sequence: 0,
+        witnessUtxo: {
+          script: payment.output!,
+          value,
+        },
+      });
+      psbt.addOutput({
+        address: payment.address!,
+        value: value - 500,
+      });
+      await newKeyring.signTransaction(
+          psbt,
+          [{ index: 0, publicKey: pubkey, rawTaprootPubkey: true }],
+          { network: bitcoin.networks.bitcoin }
+      );
 
       psbt.finalizeAllInputs();
       psbt.extractTransaction();

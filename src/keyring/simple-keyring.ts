@@ -1,4 +1,5 @@
-import { isTaprootInput } from "bitcoinjs-lib/src/psbt/bip371";
+import { isTaprootInput, serializeTaprootSignature } from "bitcoinjs-lib/src/psbt/bip371";
+import { bech32 } from "bech32";
 import { decode } from "bs58check";
 import { EventEmitter } from "events";
 import { ECPair, ECPairInterface, bitcoin } from "../bitcoin-core";
@@ -6,7 +7,7 @@ import {
   signMessageOfDeterministicECDSA,
   verifyMessageOfECDSA,
 } from "../message";
-import { tweakSigner } from "../utils";
+import {toXOnly, tweakSigner} from "../utils";
 
 const type = "Simple Key Pair";
 
@@ -31,7 +32,10 @@ export class SimpleKeyring extends EventEmitter {
 
     this.wallets = privateKeys.map((key) => {
       let buf: Buffer;
-      if (key.length === 64) {
+      if (key.startsWith('nsec')) {
+        const { words } = bech32.decode(key)
+        buf = Buffer.from(new Uint8Array(bech32.fromWords(words)))
+      } else if (key.length === 64) {
         // privateKey
         buf = Buffer.from(key, "hex");
       } else {
@@ -66,17 +70,43 @@ export class SimpleKeyring extends EventEmitter {
       publicKey: string;
       sighashTypes?: number[];
       disableTweakSigner?: boolean;
+      rawTaprootPubkey?: boolean;
     }[],
     opts?: any
   ) {
     inputs.forEach((input) => {
       const keyPair = this._getPrivateKeyFor(input.publicKey);
+      const isTapInput = isTaprootInput(psbt.data.inputs[input.index]);
       if (
-        isTaprootInput(psbt.data.inputs[input.index]) &&
-        !input.disableTweakSigner
+        isTapInput &&
+        !input.disableTweakSigner &&
+        !input.rawTaprootPubkey
       ) {
         const signer = tweakSigner(keyPair, opts);
         psbt.signInput(input.index, signer, input.sighashTypes);
+      } else if (isTapInput && input.rawTaprootPubkey) {
+        const inputAddressInfo = bitcoin.payments.p2tr({
+          pubkey: toXOnly(Buffer.from(input.publicKey, 'hex')),
+          network: this.network,
+        });
+        let hashType
+        if (!input.sighashTypes) {
+          hashType = bitcoin.Transaction.SIGHASH_DEFAULT
+        } else if (input.sighashTypes.length > 1) {
+          throw new Error('Only one sighash type is supported for raw taproot inputs')
+        } else {
+          hashType = input.sighashTypes[0]
+        }
+        const hashForSigning = (psbt as any).__CACHE.__TX.hashForWitnessV1(
+            input.index,
+            [inputAddressInfo.output],
+            [psbt.data.inputs[input.index].witnessUtxo.value],
+            hashType
+        );
+        const signature = keyPair.signSchnorr(hashForSigning);
+        psbt.updateInput(input.index, {
+          tapKeySig: serializeTaprootSignature(signature)
+        })
       } else {
         const signer = keyPair;
         psbt.signInput(input.index, signer, input.sighashTypes);
