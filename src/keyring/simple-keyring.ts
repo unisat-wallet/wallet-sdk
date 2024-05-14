@@ -1,14 +1,11 @@
-import { isTaprootInput } from "bitcoinjs-lib/src/psbt/bip371";
-import { decode } from "bs58check";
-import { EventEmitter } from "events";
-import { ECPair, ECPairInterface, bitcoin } from "../bitcoin-core";
-import {
-  signMessageOfDeterministicECDSA,
-  verifyMessageOfECDSA,
-} from "../message";
-import { tweakSigner } from "../utils";
+import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371';
+import { decode } from 'bs58check';
+import { EventEmitter } from 'events';
+import { ECPair, ECPairInterface, bitcoin } from '../bitcoin-core';
+import { signMessageOfDeterministicECDSA, verifyMessageOfECDSA } from '../message';
+import { tweakSigner } from '../utils';
 
-const type = "Simple Key Pair";
+const type = 'Simple Key Pair';
 
 export class SimpleKeyring extends EventEmitter {
   static type = type;
@@ -23,7 +20,7 @@ export class SimpleKeyring extends EventEmitter {
   }
 
   async serialize(): Promise<any> {
-    return this.wallets.map((wallet) => wallet.privateKey.toString("hex"));
+    return this.wallets.map((wallet) => wallet.privateKey.toString('hex'));
   }
 
   async deserialize(opts: any) {
@@ -33,7 +30,7 @@ export class SimpleKeyring extends EventEmitter {
       let buf: Buffer;
       if (key.length === 64) {
         // privateKey
-        buf = Buffer.from(key, "hex");
+        buf = Buffer.from(key, 'hex');
       } else {
         // base58
         buf = decode(key).slice(1, 33);
@@ -49,14 +46,12 @@ export class SimpleKeyring extends EventEmitter {
       newWallets.push(ECPair.makeRandom());
     }
     this.wallets = this.wallets.concat(newWallets);
-    const hexWallets = newWallets.map(({ publicKey }) =>
-      publicKey.toString("hex")
-    );
+    const hexWallets = newWallets.map(({ publicKey }) => publicKey.toString('hex'));
     return hexWallets;
   }
 
   async getAccounts() {
-    return this.wallets.map(({ publicKey }) => publicKey.toString("hex"));
+    return this.wallets.map(({ publicKey }) => publicKey.toString('hex'));
   }
 
   async signTransaction(
@@ -71,10 +66,7 @@ export class SimpleKeyring extends EventEmitter {
   ) {
     inputs.forEach((input) => {
       const keyPair = this._getPrivateKeyFor(input.publicKey);
-      if (
-        isTaprootInput(psbt.data.inputs[input.index]) &&
-        !input.disableTweakSigner
-      ) {
+      if (isTaprootInput(psbt.data.inputs[input.index]) && !input.disableTweakSigner) {
         const signer = tweakSigner(keyPair, opts);
         psbt.signInput(input.index, signer, input.sighashTypes);
       } else {
@@ -95,24 +87,20 @@ export class SimpleKeyring extends EventEmitter {
   }
 
   // Sign any content, but note that the content signed by this method is unreadable, so use it with caution.
-  async signData(
-    publicKey: string,
-    data: string,
-    type: "ecdsa" | "schnorr" = "ecdsa"
-  ) {
+  async signData(publicKey: string, data: string, type: 'ecdsa' | 'schnorr' = 'ecdsa') {
     const keyPair = this._getPrivateKeyFor(publicKey);
-    if (type === "ecdsa") {
-      return keyPair.sign(Buffer.from(data, "hex")).toString("hex");
-    } else if (type === "schnorr") {
-      return keyPair.signSchnorr(Buffer.from(data, "hex")).toString("hex");
+    if (type === 'ecdsa') {
+      return keyPair.sign(Buffer.from(data, 'hex')).toString('hex');
+    } else if (type === 'schnorr') {
+      return keyPair.signSchnorr(Buffer.from(data, 'hex')).toString('hex');
     } else {
-      throw new Error("Not support type");
+      throw new Error('Not support type');
     }
   }
 
   private _getPrivateKeyFor(publicKey: string) {
     if (!publicKey) {
-      throw new Error("Must specify publicKey.");
+      throw new Error('Must specify publicKey.');
     }
     const wallet = this._getWalletForAccount(publicKey);
     return wallet;
@@ -120,52 +108,33 @@ export class SimpleKeyring extends EventEmitter {
 
   async exportAccount(publicKey: string) {
     const wallet = this._getWalletForAccount(publicKey);
-    return wallet.privateKey.toString("hex");
+    return wallet.privateKey.toString('hex');
   }
 
   removeAccount(publicKey: string) {
-    if (
-      !this.wallets
-        .map((wallet) => wallet.publicKey.toString("hex"))
-        .includes(publicKey)
-    ) {
+    if (!this.wallets.map((wallet) => wallet.publicKey.toString('hex')).includes(publicKey)) {
       throw new Error(`PublicKey ${publicKey} not found in this keyring`);
     }
 
-    this.wallets = this.wallets.filter(
-      (wallet) => wallet.publicKey.toString("hex") !== publicKey
-    );
+    this.wallets = this.wallets.filter((wallet) => wallet.publicKey.toString('hex') !== publicKey);
   }
 
   private _getWalletForAccount(publicKey: string) {
-    let wallet = this.wallets.find(
-      (wallet) => wallet.publicKey.toString("hex") == publicKey
-    );
+    let wallet = this.wallets.find((wallet) => wallet.publicKey.toString('hex') == publicKey);
     if (!wallet) {
-      throw new Error("Simple Keyring - Unable to find matching publicKey.");
+      throw new Error('Simple Keyring - Unable to find matching publicKey.');
     }
     return wallet;
   }
 }
 
-export function verifySignData(
-  publicKey: string,
-  hash: string,
-  type: "ecdsa" | "schnorr",
-  signature: string
-) {
-  const keyPair = ECPair.fromPublicKey(Buffer.from(publicKey, "hex"));
-  if (type === "ecdsa") {
-    return keyPair.verify(
-      Buffer.from(hash, "hex"),
-      Buffer.from(signature, "hex")
-    );
-  } else if (type === "schnorr") {
-    return keyPair.verifySchnorr(
-      Buffer.from(hash, "hex"),
-      Buffer.from(signature, "hex")
-    );
+export function verifySignData(publicKey: string, hash: string, type: 'ecdsa' | 'schnorr', signature: string) {
+  const keyPair = ECPair.fromPublicKey(Buffer.from(publicKey, 'hex'));
+  if (type === 'ecdsa') {
+    return keyPair.verify(Buffer.from(hash, 'hex'), Buffer.from(signature, 'hex'));
+  } else if (type === 'schnorr') {
+    return keyPair.verifySchnorr(Buffer.from(hash, 'hex'), Buffer.from(signature, 'hex'));
   } else {
-    throw new Error("Not support type");
+    throw new Error('Not support type');
   }
 }

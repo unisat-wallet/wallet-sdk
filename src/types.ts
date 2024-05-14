@@ -41,7 +41,7 @@ export interface UnspentOutput {
   atomicals: {
     atomicalId: string;
     atomicalNumber: number;
-    type: "FT" | "NFT";
+    type: 'FT' | 'NFT';
     ticker?: string;
   }[];
   runes?: {
@@ -60,5 +60,5 @@ export enum AddressType {
   M44_P2TR, // deprecated
   P2WSH,
   P2SH,
-  UNKNOWN,
+  UNKNOWN
 }

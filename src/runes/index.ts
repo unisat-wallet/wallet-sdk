@@ -1,1 +1,1 @@
-export * from "./varint";
+export * from './varint';

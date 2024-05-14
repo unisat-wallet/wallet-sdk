@@ -1,6 +1,6 @@
-import { decodeAddress } from "../address";
-import { NetworkType } from "../network";
-import { AddressType, UnspentOutput } from "../types";
+import { decodeAddress } from '../address';
+import { NetworkType } from '../network';
+import { AddressType, UnspentOutput } from '../types';
 
 function hasInscription(utxos: UnspentOutput[]) {
   if (utxos.find((v) => v.inscriptions.length > 0)) {
@@ -10,14 +10,14 @@ function hasInscription(utxos: UnspentOutput[]) {
 }
 
 function hasAtomicalsFT(utxos: UnspentOutput[]) {
-  if (utxos.find((v) => v.atomicals.find((w) => w.type === "FT"))) {
+  if (utxos.find((v) => v.atomicals.find((w) => w.type === 'FT'))) {
     return true;
   }
   return false;
 }
 
 function hasAtomicalsNFT(utxos: UnspentOutput[]) {
-  if (utxos.find((v) => v.atomicals.find((w) => w.type === "NFT"))) {
+  if (utxos.find((v) => v.atomicals.find((w) => w.type === 'NFT'))) {
     return true;
   }
   return false;
@@ -59,7 +59,7 @@ function selectBtcUtxos(utxos: UnspentOutput[], targetAmount: number) {
 
   return {
     selectedUtxos,
-    remainingUtxos,
+    remainingUtxos
   };
 }
 
@@ -67,34 +67,22 @@ function selectBtcUtxos(utxos: UnspentOutput[], targetAmount: number) {
  * return the added virtual size of the utxo
  */
 function getAddedVirtualSize(addressType: AddressType) {
-  if (
-    addressType === AddressType.P2WPKH ||
-    addressType === AddressType.M44_P2WPKH
-  ) {
+  if (addressType === AddressType.P2WPKH || addressType === AddressType.M44_P2WPKH) {
     return 41 + (1 + 1 + 72 + 1 + 33) / 4;
-  } else if (
-    addressType === AddressType.P2TR ||
-    addressType === AddressType.M44_P2TR
-  ) {
+  } else if (addressType === AddressType.P2TR || addressType === AddressType.M44_P2TR) {
     return 41 + (1 + 1 + 64) / 4;
   } else if (addressType === AddressType.P2PKH) {
     return 41 + 1 + 1 + 72 + 1 + 33;
   } else if (addressType === AddressType.P2SH_P2WPKH) {
     return 41 + 24 + (1 + 1 + 72 + 1 + 33) / 4;
   }
-  throw new Error("unknown address type");
+  throw new Error('unknown address type');
 }
 
 export function getUtxoDust(addressType: AddressType) {
-  if (
-    addressType === AddressType.P2WPKH ||
-    addressType === AddressType.M44_P2WPKH
-  ) {
+  if (addressType === AddressType.P2WPKH || addressType === AddressType.M44_P2WPKH) {
     return 294;
-  } else if (
-    addressType === AddressType.P2TR ||
-    addressType === AddressType.M44_P2TR
-  ) {
+  } else if (addressType === AddressType.P2TR || addressType === AddressType.M44_P2TR) {
     return 330;
   } else {
     return 546;
@@ -102,10 +90,8 @@ export function getUtxoDust(addressType: AddressType) {
 }
 
 // deprecated
-export function getAddressUtxoDust(
-  address: string,
-  networkType: NetworkType = NetworkType.MAINNET
-) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function getAddressUtxoDust(address: string, networkType: NetworkType = NetworkType.MAINNET) {
   return decodeAddress(address).dust;
 }
 
@@ -118,5 +104,5 @@ export const utxoHelper = {
   selectBtcUtxos,
   getAddedVirtualSize,
   getUtxoDust,
-  getAddressUtxoDust,
+  getAddressUtxoDust
 };

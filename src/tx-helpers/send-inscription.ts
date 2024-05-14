@@ -1,8 +1,8 @@
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import { Transaction } from "../transaction/transaction";
-import { utxoHelper } from "../transaction/utxo";
-import { UnspentOutput } from "../types";
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { Transaction } from '../transaction/transaction';
+import { utxoHelper } from '../transaction/utxo';
+import { UnspentOutput } from '../types';
 
 export async function sendInscription({
   assetUtxo,
@@ -13,7 +13,7 @@ export async function sendInscription({
   feeRate,
   outputValue,
   enableRBF = true,
-  enableMixed = false,
+  enableMixed = false
 }: {
   assetUtxo: UnspentOutput;
   btcUtxos: UnspentOutput[];
@@ -57,7 +57,7 @@ export async function sendInscription({
   const toSignInputs = await tx.addSufficientUtxosForFee(btcUtxos);
   toSignInputs.push({
     index: 0,
-    publicKey: assetUtxo.pubkey,
+    publicKey: assetUtxo.pubkey
   });
 
   const psbt = tx.toPsbt();

@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 export async function expectThrowError(func, errorMsg) {
   let error;
   try {
@@ -10,14 +10,14 @@ export async function expectThrowError(func, errorMsg) {
   expect(error.message).to.eq(errorMsg);
 }
 
-import { scriptPkToAddress } from "../src/address";
-import { bitcoin } from "../src/bitcoin-core";
+import { scriptPkToAddress } from '../src/address';
+import { bitcoin } from '../src/bitcoin-core';
 
 export function printTx(rawtx: string) {
   const tx = bitcoin.Transaction.fromHex(rawtx);
   let ins = [];
   tx.ins.forEach((v) => {
-    const txid = v.hash.reverse().toString("hex");
+    const txid = v.hash.reverse().toString('hex');
     const vout = v.index;
     ins.push({ txid, vout });
   });
@@ -29,7 +29,7 @@ export function printTx(rawtx: string) {
     outs.push({ address, satoshis });
   });
 
-  let str = "\nPrint TX \n";
+  let str = '\nPrint TX \n';
   str += `txid: ${tx.getId()}\n`;
   str += `\nInputs:(${ins.length})\n`;
   ins.forEach((v, index) => {
@@ -41,30 +41,28 @@ export function printTx(rawtx: string) {
   outs.forEach((v, index) => {
     str += `#${index} ${v.address} ${v.satoshis}\n`;
   });
-  str += "\n";
+  str += '\n';
 
   console.log(str);
 }
 
 export function printPsbt(psbtData: string | bitcoin.Psbt) {
   let psbt: bitcoin.Psbt;
-  if (typeof psbtData == "string") {
+  if (typeof psbtData == 'string') {
     psbt = bitcoin.Psbt.fromHex(psbtData);
   } else {
     psbt = psbtData;
   }
   let totalInput = 0;
   let totalOutput = 0;
-  let str = "\nPSBT:\n";
+  let str = '\nPSBT:\n';
   str += `Inputs:(${psbt.txInputs.length})\n`;
   psbt.txInputs.forEach((input, index) => {
     const inputData = psbt.data.inputs[index];
     str += `#${index} ${scriptPkToAddress(
-      inputData.witnessUtxo.script.toString("hex")
+      inputData.witnessUtxo.script.toString('hex')
     )} ${inputData.witnessUtxo.value}\n`;
-    str += `   ${Buffer.from(input.hash).reverse().toString("hex")} [${
-      input.index
-    }]\n`;
+    str += `   ${Buffer.from(input.hash).reverse().toString('hex')} [${input.index}]\n`;
     totalInput += inputData.witnessUtxo.value;
   });
 
@@ -75,17 +73,16 @@ export function printPsbt(psbtData: string | bitcoin.Psbt) {
       totalOutput += output.value;
     } else {
       if (output.script[0] === 0x6a) {
-        let opreutrnDataString = "OP_RETURN ";
+        let opreutrnDataString = 'OP_RETURN ';
         let curScript = output.script.slice(1);
         while (curScript.length > 0) {
-          const len = parseInt(curScript.slice(0, 1).toString("hex"), 16);
-          opreutrnDataString +=
-            curScript.slice(1, len + 1).toString("hex") + " ";
+          const len = parseInt(curScript.slice(0, 1).toString('hex'), 16);
+          opreutrnDataString += curScript.slice(1, len + 1).toString('hex') + ' ';
           curScript = curScript.slice(len + 1);
         }
         str += `#${index} ${opreutrnDataString} ${output.value}\n`;
       } else {
-        str += `#${index} ${output.script.toString("hex")} ${output.value}\n`;
+        str += `#${index} ${output.script.toString('hex')} ${output.value}\n`;
       }
 
       totalOutput += output.value;
@@ -104,6 +101,6 @@ export function printPsbt(psbtData: string | bitcoin.Psbt) {
     // todo
   }
 
-  str += "\n";
+  str += '\n';
   console.log(str);
 }

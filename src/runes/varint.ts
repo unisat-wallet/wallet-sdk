@@ -1,11 +1,11 @@
-import bigInt from "big-integer";
+import bigInt from 'big-integer';
 function try_decode(buf) {
   let n = bigInt(0);
   let m = bigInt(1);
 
   for (let i = 0; ; i++) {
     if (i >= buf.length) {
-      throw new Error("Buffer too short");
+      throw new Error('Buffer too short');
     }
 
     let byte = bigInt(buf.readUInt8(i));
@@ -43,5 +43,5 @@ export const varint = {
   encode,
   decode,
   try_decode,
-  encodeToVec,
+  encodeToVec
 };

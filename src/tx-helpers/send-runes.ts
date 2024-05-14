@@ -1,12 +1,12 @@
-import bigInt from "big-integer";
-import { bitcoin } from "../bitcoin-core";
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import { varint } from "../runes";
-import { RuneId } from "../runes/rund_id";
-import { Transaction } from "../transaction/transaction";
-import { utxoHelper } from "../transaction/utxo";
-import { ToSignInput, UnspentOutput } from "../types";
+import bigInt from 'big-integer';
+import { bitcoin } from '../bitcoin-core';
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { varint } from '../runes';
+import { RuneId } from '../runes/rund_id';
+import { Transaction } from '../transaction/transaction';
+import { utxoHelper } from '../transaction/utxo';
+import { ToSignInput, UnspentOutput } from '../types';
 
 // only one arc20 can be send
 export async function sendRunes({
@@ -20,7 +20,7 @@ export async function sendRunes({
   runeAmount,
   outputValue,
   feeRate,
-  enableRBF = true,
+  enableRBF = true
 }: {
   assetUtxos: UnspentOutput[];
   btcUtxos: UnspentOutput[];
@@ -35,10 +35,7 @@ export async function sendRunes({
   enableRBF?: boolean;
 }) {
   // safe check
-  if (
-    utxoHelper.hasAtomicalsNFT(assetUtxos) ||
-    utxoHelper.hasInscription(assetUtxos)
-  ) {
+  if (utxoHelper.hasAtomicalsNFT(assetUtxos) || utxoHelper.hasInscription(assetUtxos)) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
   }
 
@@ -110,11 +107,7 @@ export async function sendRunes({
   // add op_return
   tx.addScriptOutput(
     // OUTPUT_0
-    bitcoin.script.compile([
-      bitcoin.opcodes.OP_RETURN,
-      bitcoin.opcodes.OP_13,
-      Buffer.from(new Uint8Array(payload)),
-    ]),
+    bitcoin.script.compile([bitcoin.opcodes.OP_RETURN, bitcoin.opcodes.OP_13, Buffer.from(new Uint8Array(payload))]),
     0
   );
 

@@ -1,8 +1,8 @@
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import { Transaction } from "../transaction/transaction";
-import { utxoHelper } from "../transaction/utxo";
-import { ToSignInput, UnspentOutput } from "../types";
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { Transaction } from '../transaction/transaction';
+import { utxoHelper } from '../transaction/utxo';
+import { ToSignInput, UnspentOutput } from '../types';
 
 export async function sendInscriptions({
   assetUtxos,
@@ -11,7 +11,7 @@ export async function sendInscriptions({
   networkType,
   changeAddress,
   feeRate,
-  enableRBF = true,
+  enableRBF = true
 }: {
   assetUtxos: UnspentOutput[];
   btcUtxos: UnspentOutput[];
@@ -40,9 +40,7 @@ export async function sendInscriptions({
   for (let i = 0; i < assetUtxos.length; i++) {
     const assetUtxo = assetUtxos[i];
     if (assetUtxo.inscriptions.length > 1) {
-      throw new Error(
-        "Multiple inscriptions in one UTXO! Please split them first."
-      );
+      throw new Error('Multiple inscriptions in one UTXO! Please split them first.');
     }
     tx.addInput(assetUtxo);
     tx.addOutput(toAddress, assetUtxo.satoshis);

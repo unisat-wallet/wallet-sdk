@@ -31,7 +31,7 @@
     "build:typed": "tsc --declaration --emitDeclarationOnly --noEmit false",
     "test": "mocha -r ts-node/register test/**/*.ts --timeout 300000",
     "prepublishOnly": "npm run build",
-    "lint": "eslint ."
+    "lint": "eslint ./src ./test"
   },
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.0.5",

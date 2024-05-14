@@ -1,13 +1,8 @@
-import { UTXO_DUST } from "../constants";
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import {
-  InscriptionUnit,
-  InscriptionUnspendOutput,
-  Transaction,
-  utxoHelper,
-} from "../transaction";
-import { ToSignInput, UnspentOutput } from "../types";
+import { UTXO_DUST } from '../constants';
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { InscriptionUnit, InscriptionUnspendOutput, Transaction, utxoHelper } from '../transaction';
+import { ToSignInput, UnspentOutput } from '../types';
 
 export async function splitInscriptionUtxo({
   btcUtxos,
@@ -16,7 +11,7 @@ export async function splitInscriptionUtxo({
   changeAddress,
   feeRate,
   enableRBF = true,
-  outputValue = 546,
+  outputValue = 546
 }: {
   btcUtxos: UnspentOutput[];
   assetUtxo: UnspentOutput;
@@ -48,13 +43,11 @@ export async function splitInscriptionUtxo({
   tx.addInput(ordUtxo.utxo);
   toSignInputs.push({ index: 0, publicKey: ordUtxo.utxo.pubkey });
 
-  let tmpOutputCounts = 0;
   for (let j = 0; j < ordUtxo.inscriptionUnits.length; j++) {
     const unit = ordUtxo.inscriptionUnits[j];
     if (unit.hasInscriptions()) {
       tx.addChangeOutput(unit.satoshis);
       lastUnit = unit;
-      tmpOutputCounts++;
       splitedCount++;
       continue;
     }

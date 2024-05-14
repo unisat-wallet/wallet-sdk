@@ -1,8 +1,8 @@
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import { Transaction } from "../transaction/transaction";
-import { utxoHelper } from "../transaction/utxo";
-import { ToSignInput, UnspentOutput } from "../types";
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { Transaction } from '../transaction/transaction';
+import { utxoHelper } from '../transaction/utxo';
+import { ToSignInput, UnspentOutput } from '../types';
 
 export async function sendAtomicalsNFT({
   assetUtxo,
@@ -11,7 +11,7 @@ export async function sendAtomicalsNFT({
   networkType,
   changeAddress,
   feeRate,
-  enableRBF = true,
+  enableRBF = true
 }: {
   assetUtxo: UnspentOutput;
   btcUtxos: UnspentOutput[];
@@ -22,10 +22,7 @@ export async function sendAtomicalsNFT({
   enableRBF?: boolean;
 }) {
   // safe check
-  if (
-    utxoHelper.hasAtomicalsFT([assetUtxo]) ||
-    utxoHelper.hasInscription([assetUtxo])
-  ) {
+  if (utxoHelper.hasAtomicalsFT([assetUtxo]) || utxoHelper.hasInscription([assetUtxo])) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
   }
 

@@ -1,5 +1,5 @@
-import { UTXO_DUST } from "../constants";
-import { UnspentOutput } from "../types";
+import { UTXO_DUST } from '../constants';
+import { UnspentOutput } from '../types';
 
 export class InscriptionUnit {
   satoshis: number; // satoshis of this unit
@@ -54,8 +54,8 @@ export class InscriptionUnspendOutput {
               {
                 id: id,
                 outputOffset: offset,
-                unitOffset: curOffset,
-              },
+                unitOffset: curOffset
+              }
             ])
           );
           leftAmount = 0;
@@ -65,7 +65,7 @@ export class InscriptionUnspendOutput {
           preUnit.inscriptions.push({
             id,
             outputOffset: offset,
-            unitOffset: preUnit.satoshis + curOffset,
+            unitOffset: preUnit.satoshis + curOffset
           });
           continue;
         }
@@ -80,8 +80,8 @@ export class InscriptionUnspendOutput {
                 {
                   id,
                   outputOffset: offset,
-                  unitOffset: 0,
-                },
+                  unitOffset: 0
+                }
               ])
             );
           } else {
@@ -90,16 +90,14 @@ export class InscriptionUnspendOutput {
                 {
                   id,
                   outputOffset: offset,
-                  unitOffset: curOffset,
-                },
+                  unitOffset: curOffset
+                }
               ])
             );
           }
         } else {
           inscriptionUnits.push(
-            new InscriptionUnit(curOffset + splitOutputValue, [
-              { id, outputOffset: offset, unitOffset: curOffset },
-            ])
+            new InscriptionUnit(curOffset + splitOutputValue, [{ id, outputOffset: offset, unitOffset: curOffset }])
           );
         }
       }
@@ -124,9 +122,7 @@ export class InscriptionUnspendOutput {
    * Get non-Ord satoshis for spending
    */
   getNonInscriptionSatoshis() {
-    return this.inscriptionUnits
-      .filter((v) => v.inscriptions.length == 0)
-      .reduce((pre, cur) => pre + cur.satoshis, 0);
+    return this.inscriptionUnits.filter((v) => v.inscriptions.length == 0).reduce((pre, cur) => pre + cur.satoshis, 0);
   }
 
   /**
@@ -149,7 +145,7 @@ export class InscriptionUnspendOutput {
   // print each units
   dump() {
     this.inscriptionUnits.forEach((v) => {
-      console.log("satoshis:", v.satoshis, "inscriptions:", v.inscriptions);
+      console.log('satoshis:', v.satoshis, 'inscriptions:', v.inscriptions);
     });
   }
 }

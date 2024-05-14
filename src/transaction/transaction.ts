@@ -1,12 +1,12 @@
-import { addressToScriptPk } from "../address";
-import { bitcoin } from "../bitcoin-core";
-import { UTXO_DUST } from "../constants";
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType, toPsbtNetwork } from "../network";
-import { AddressType, ToSignInput, UnspentOutput } from "../types";
-import { toXOnly } from "../utils";
-import { EstimateWallet } from "../wallet";
-import { utxoHelper } from "./utxo";
+import { addressToScriptPk } from '../address';
+import { bitcoin } from '../bitcoin-core';
+import { UTXO_DUST } from '../constants';
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType, toPsbtNetwork } from '../network';
+import { AddressType, ToSignInput, UnspentOutput } from '../types';
+import { toXOnly } from '../utils';
+import { EstimateWallet } from '../wallet';
+import { utxoHelper } from './utxo';
 interface TxInput {
   data: {
     hash: string;
@@ -28,38 +28,32 @@ interface TxOutput {
  * Convert UnspentOutput to PSBT TxInput
  */
 function utxoToInput(utxo: UnspentOutput, estimate?: boolean): TxInput {
-  if (
-    utxo.addressType === AddressType.P2TR ||
-    utxo.addressType === AddressType.M44_P2TR
-  ) {
+  if (utxo.addressType === AddressType.P2TR || utxo.addressType === AddressType.M44_P2TR) {
     const data = {
       hash: utxo.txid,
       index: utxo.vout,
       witnessUtxo: {
         value: utxo.satoshis,
-        script: Buffer.from(utxo.scriptPk, "hex"),
+        script: Buffer.from(utxo.scriptPk, 'hex')
       },
-      tapInternalKey: toXOnly(Buffer.from(utxo.pubkey, "hex")),
+      tapInternalKey: toXOnly(Buffer.from(utxo.pubkey, 'hex'))
     };
     return {
       data,
-      utxo,
+      utxo
     };
-  } else if (
-    utxo.addressType === AddressType.P2WPKH ||
-    utxo.addressType === AddressType.M44_P2WPKH
-  ) {
+  } else if (utxo.addressType === AddressType.P2WPKH || utxo.addressType === AddressType.M44_P2WPKH) {
     const data = {
       hash: utxo.txid,
       index: utxo.vout,
       witnessUtxo: {
         value: utxo.satoshis,
-        script: Buffer.from(utxo.scriptPk, "hex"),
-      },
+        script: Buffer.from(utxo.scriptPk, 'hex')
+      }
     };
     return {
       data,
-      utxo,
+      utxo
     };
   } else if (utxo.addressType === AddressType.P2PKH) {
     if (!utxo.rawtx || estimate) {
@@ -68,40 +62,40 @@ function utxoToInput(utxo: UnspentOutput, estimate?: boolean): TxInput {
         index: utxo.vout,
         witnessUtxo: {
           value: utxo.satoshis,
-          script: Buffer.from(utxo.scriptPk, "hex"),
-        },
+          script: Buffer.from(utxo.scriptPk, 'hex')
+        }
       };
       return {
         data,
-        utxo,
+        utxo
       };
     } else {
       const data = {
         hash: utxo.txid,
         index: utxo.vout,
-        nonWitnessUtxo: Buffer.from(utxo.rawtx, "hex"),
+        nonWitnessUtxo: Buffer.from(utxo.rawtx, 'hex')
       };
       return {
         data,
-        utxo,
+        utxo
       };
     }
   } else if (utxo.addressType === AddressType.P2SH_P2WPKH) {
     const redeemData = bitcoin.payments.p2wpkh({
-      pubkey: Buffer.from(utxo.pubkey, "hex"),
+      pubkey: Buffer.from(utxo.pubkey, 'hex')
     });
     const data = {
       hash: utxo.txid,
       index: utxo.vout,
       witnessUtxo: {
         value: utxo.satoshis,
-        script: Buffer.from(utxo.scriptPk, "hex"),
+        script: Buffer.from(utxo.scriptPk, 'hex')
       },
-      redeemScript: redeemData.output,
+      redeemScript: redeemData.output
     };
     return {
       data,
-      utxo,
+      utxo
     };
   }
 }
@@ -171,7 +165,7 @@ export class Transaction {
   addOutput(address: string, value: number) {
     this.outputs.push({
       address,
-      value,
+      value
     });
   }
 
@@ -179,14 +173,14 @@ export class Transaction {
     const embed = bitcoin.payments.embed({ data });
     this.outputs.push({
       script: embed.output,
-      value: 0,
+      value: 0
     });
   }
 
   addScriptOutput(script: Buffer, value: number) {
     this.outputs.push({
       script,
-      value,
+      value
     });
   }
 
@@ -197,7 +191,7 @@ export class Transaction {
   addChangeOutput(value: number) {
     this.outputs.push({
       address: this.changedAddress,
-      value,
+      value
     });
     this.changeOutputIndex = this.outputs.length - 1;
   }
@@ -239,12 +233,12 @@ export class Transaction {
       if (v.address) {
         psbt.addOutput({
           address: v.address,
-          value: v.value,
+          value: v.value
         });
       } else if (v.script) {
         psbt.addOutput({
           script: v.script,
-          value: v.value,
+          value: v.value
         });
       }
     });
@@ -265,15 +259,9 @@ export class Transaction {
   }
 
   async createEstimatePsbt() {
-    const estimateWallet = EstimateWallet.fromRandom(
-      this.inputs[0].utxo.addressType,
-      this.networkType
-    );
+    const estimateWallet = EstimateWallet.fromRandom(this.inputs[0].utxo.addressType, this.networkType);
 
-    const scriptPk = addressToScriptPk(
-      estimateWallet.address,
-      this.networkType
-    ).toString("hex");
+    const scriptPk = addressToScriptPk(estimateWallet.address, this.networkType).toString('hex');
 
     const tx = this.clone();
     tx.utxos.forEach((v) => {
@@ -290,12 +278,12 @@ export class Transaction {
 
     const toSignInputs = tx.inputs.map((v, index) => ({
       index,
-      publicKey: estimateWallet.pubkey,
+      publicKey: estimateWallet.pubkey
     }));
 
     await estimateWallet.signPsbt(psbt, {
       autoFinalized: true,
-      toSignInputs: toSignInputs,
+      toSignInputs: toSignInputs
     });
     return psbt;
   }
@@ -315,20 +303,16 @@ export class Transaction {
         this.addInput(v);
         this._cacheToSignInputs.push({
           index: this.inputs.length - 1,
-          publicKey: v.pubkey,
+          publicKey: v.pubkey
         });
-        this._cacheNetworkFee +=
-          utxoHelper.getAddedVirtualSize(v.addressType) * this.feeRate;
+        this._cacheNetworkFee += utxoHelper.getAddedVirtualSize(v.addressType) * this.feeRate;
       });
       this._cacheBtcUtxos = remainingUtxos;
       this.selectBtcUtxos();
     }
   }
 
-  async addSufficientUtxosForFee(
-    btcUtxos: UnspentOutput[],
-    forceAsFee?: boolean
-  ) {
+  async addSufficientUtxosForFee(btcUtxos: UnspentOutput[], forceAsFee?: boolean) {
     if (btcUtxos.length > 0) {
       this._cacheBtcUtxos = btcUtxos;
       const dummyBtcUtxo = Object.assign({}, btcUtxos[0]);
@@ -337,9 +321,7 @@ export class Transaction {
       this.addChangeOutput(0);
 
       const networkFee = await this.calNetworkFee();
-      const dummyBtcUtxoSize = utxoHelper.getAddedVirtualSize(
-        dummyBtcUtxo.addressType
-      );
+      const dummyBtcUtxoSize = utxoHelper.getAddedVirtualSize(dummyBtcUtxo.addressType);
       this._cacheNetworkFee = networkFee - dummyBtcUtxoSize * this.feeRate;
 
       this.removeLastInput();
@@ -355,10 +337,7 @@ export class Transaction {
       this._cacheNetworkFee = await this.calNetworkFee();
     }
 
-    const changeAmount =
-      this.getTotalInput() -
-      this.getTotalOutput() -
-      Math.ceil(this._cacheNetworkFee);
+    const changeAmount = this.getTotalInput() - this.getTotalOutput() - Math.ceil(this._cacheNetworkFee);
     if (changeAmount > UTXO_DUST) {
       this.removeChangeOutput();
       this.addChangeOutput(changeAmount);
@@ -392,7 +371,7 @@ ${this.inputs
 `;
     return str;
   })
-  .join("")}
+  .join('')}
 total: ${this.getTotalInput()} Sats
 ----------------------------------------------------------------------------------------------
 Outputs
@@ -402,7 +381,7 @@ ${this.outputs
 =>${index} ${output.address} ${output.value} Sats`;
     return str;
   })
-  .join("")}
+  .join('')}
 
 total: ${this.getTotalOutput()} Sats
 =============================================================================================

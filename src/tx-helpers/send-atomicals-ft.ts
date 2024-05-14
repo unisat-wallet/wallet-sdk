@@ -1,8 +1,8 @@
-import { ErrorCodes, WalletUtilsError } from "../error";
-import { NetworkType } from "../network";
-import { Transaction } from "../transaction/transaction";
-import { utxoHelper } from "../transaction/utxo";
-import { ToSignInput, UnspentOutput } from "../types";
+import { ErrorCodes, WalletUtilsError } from '../error';
+import { NetworkType } from '../network';
+import { Transaction } from '../transaction/transaction';
+import { utxoHelper } from '../transaction/utxo';
+import { ToSignInput, UnspentOutput } from '../types';
 
 // only one arc20 can be send
 export async function sendAtomicalsFT({
@@ -14,7 +14,7 @@ export async function sendAtomicalsFT({
   sendAmount,
   changeAddress,
   feeRate,
-  enableRBF = true,
+  enableRBF = true
 }: {
   assetUtxos: UnspentOutput[];
   btcUtxos: UnspentOutput[];
@@ -27,10 +27,7 @@ export async function sendAtomicalsFT({
   enableRBF?: boolean;
 }) {
   // safe check
-  if (
-    utxoHelper.hasAtomicalsNFT(assetUtxos) ||
-    utxoHelper.hasInscription(assetUtxos)
-  ) {
+  if (utxoHelper.hasAtomicalsNFT(assetUtxos) || utxoHelper.hasInscription(assetUtxos)) {
     throw new WalletUtilsError(ErrorCodes.NOT_SAFE_UTXOS);
   }
 

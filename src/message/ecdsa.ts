@@ -1,5 +1,5 @@
-import bitcore from "bitcore-lib";
-import { ECPairInterface } from "ecpair";
+import bitcore from 'bitcore-lib';
+import { ECPairInterface } from 'ecpair';
 
 export function signMessageOfECDSA(privateKey: ECPairInterface, text: string) {
   const keyPair = privateKey;
@@ -7,20 +7,14 @@ export function signMessageOfECDSA(privateKey: ECPairInterface, text: string) {
   return message.sign(new bitcore.PrivateKey(keyPair.privateKey));
 }
 
-export function verifyMessageOfECDSA(
-  publicKey: string,
-  text: string,
-  sig: string
-) {
+export function verifyMessageOfECDSA(publicKey: string, text: string, sig: string) {
   const message = new bitcore.Message(text);
 
-  var signature = bitcore.crypto.Signature.fromCompact(
-    Buffer.from(sig, "base64")
-  );
-  var hash = message.magicHash();
+  const signature = bitcore.crypto.Signature.fromCompact(Buffer.from(sig, 'base64'));
+  const hash = message.magicHash();
 
   // recover the public key
-  var ecdsa = new bitcore.crypto.ECDSA();
+  const ecdsa = new bitcore.crypto.ECDSA();
   ecdsa.hashbuf = hash;
   ecdsa.sig = signature;
 

@@ -1,17 +1,12 @@
-import { expect } from "chai";
-import {
-  sendAllBTC,
-  sendBTC,
-  sendInscriptions,
-  splitInscriptionUtxo,
-} from "../../src/tx-helpers";
-import { sendAtomicalsFT } from "../../src/tx-helpers/send-atomicals-ft";
-import { sendAtomicalsNFT } from "../../src/tx-helpers/send-atomicals-nft";
-import { sendInscription } from "../../src/tx-helpers/send-inscription";
-import { sendRunes } from "../../src/tx-helpers/send-runes";
-import { AddressType, UnspentOutput } from "../../src/types";
-import { LocalWallet } from "../../src/wallet";
-import { printPsbt } from "../utils";
+import { expect } from 'chai';
+import { sendAllBTC, sendBTC, sendInscriptions, splitInscriptionUtxo } from '../../src/tx-helpers';
+import { sendAtomicalsFT } from '../../src/tx-helpers/send-atomicals-ft';
+import { sendAtomicalsNFT } from '../../src/tx-helpers/send-atomicals-nft';
+import { sendInscription } from '../../src/tx-helpers/send-inscription';
+import { sendRunes } from '../../src/tx-helpers/send-runes';
+import { AddressType, UnspentOutput } from '../../src/types';
+import { LocalWallet } from '../../src/wallet';
+import { printPsbt } from '../utils';
 
 let dummyUtxoIndex = 0;
 
@@ -26,17 +21,13 @@ export function genDummyUtxos(
     atomicals?: {
       atomicalId: string;
       atomicalNumber: number;
-      type: "NFT" | "FT";
+      type: 'NFT' | 'FT';
       ticker?: string;
     }[];
   }[]
 ) {
   return satoshisArray.map((v, index) =>
-    genDummyUtxo(
-      wallet,
-      satoshisArray[index],
-      assetsArray ? assetsArray[index] : undefined
-    )
+    genDummyUtxo(wallet, satoshisArray[index], assetsArray ? assetsArray[index] : undefined)
   );
 }
 
@@ -51,7 +42,7 @@ export function genDummyUtxo(
     atomicals?: {
       atomicalId: string;
       atomicalNumber: number;
-      type: "NFT" | "FT";
+      type: 'NFT' | 'FT';
       ticker?: string;
     }[];
     runes?: {
@@ -63,9 +54,7 @@ export function genDummyUtxo(
   vout?: number
 ): UnspentOutput {
   return {
-    txid:
-      txid ||
-      "0000000000000000000000000000000000000000000000000000000000000000",
+    txid: txid || '0000000000000000000000000000000000000000000000000000000000000000',
     vout: vout !== undefined ? vout : dummyUtxoIndex++,
     satoshis: satoshis,
     scriptPk: wallet.scriptPk,
@@ -73,24 +62,24 @@ export function genDummyUtxo(
     pubkey: wallet.pubkey,
     inscriptions: assets?.inscriptions || [],
     atomicals: assets?.atomicals || [],
-    runes: assets?.runes || [],
+    runes: assets?.runes || []
   };
 }
 
 /**
  * generate a dummy atomical ft
  */
-export function genDummyAtomicalsFT(ticker = "atom"): {
+export function genDummyAtomicalsFT(ticker = 'atom'): {
   atomicalId: string;
   atomicalNumber: number;
-  type: "NFT" | "FT";
+  type: 'NFT' | 'FT';
   ticker: string;
 } {
   return {
-    atomicalId: ticker + "_id",
+    atomicalId: ticker + '_id',
     atomicalNumber: 0,
-    type: "FT",
-    ticker,
+    type: 'FT',
+    ticker
   };
 }
 
@@ -100,22 +89,18 @@ export function genDummyAtomicalsFT(ticker = "atom"): {
 export function genDummyAtomicalsNFT(): {
   atomicalId: string;
   atomicalNumber: number;
-  type: "NFT" | "FT";
+  type: 'NFT' | 'FT';
 } {
   return {
-    atomicalId: "id",
+    atomicalId: 'id',
     atomicalNumber: 0,
-    type: "NFT",
+    type: 'NFT'
   };
 }
 /**
  * For P2PKH, the signature length is not fixed, so we need to handle it specially
  */
-export function expectFeeRate(
-  addressType: AddressType,
-  feeRateA: number,
-  feeRateB: number
-) {
+export function expectFeeRate(addressType: AddressType, feeRateA: number, feeRateB: number) {
   if (addressType === AddressType.P2PKH) {
     expect(feeRateA).lt(feeRateB * 1.01);
     expect(feeRateA).gt(feeRateB * 0.99);
@@ -135,7 +120,7 @@ export async function dummySendBTC({
   dump,
   enableRBF,
   memo,
-  memos,
+  memos
 }: {
   wallet: LocalWallet;
   btcUtxos: UnspentOutput[];
@@ -154,7 +139,7 @@ export async function dummySendBTC({
     feeRate,
     enableRBF,
     memo,
-    memos,
+    memos
   });
 
   await wallet.signPsbt(psbt, { autoFinalized: true, toSignInputs });
@@ -180,7 +165,7 @@ export async function dummySendAllBTC({
   toAddress,
   feeRate,
   dump,
-  enableRBF,
+  enableRBF
 }: {
   wallet: LocalWallet;
   btcUtxos: UnspentOutput[];
@@ -194,7 +179,7 @@ export async function dummySendAllBTC({
     toAddress,
     feeRate,
     enableRBF,
-    networkType: wallet.networkType,
+    networkType: wallet.networkType
   });
   await wallet.signPsbt(psbt, { autoFinalized: true, toSignInputs });
 
@@ -225,7 +210,7 @@ export async function dummySendInscription({
   outputValue,
   dump,
   enableRBF,
-  enableMixed,
+  enableMixed
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -247,26 +232,22 @@ export async function dummySendInscription({
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
     enableRBF,
-    enableMixed,
+    enableMixed
   });
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
 
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 
@@ -296,7 +277,7 @@ export async function dummySendInscriptions({
   feeRate,
   toAddress,
   dump,
-  enableRBF,
+  enableRBF
 }: {
   assetWallet: LocalWallet;
   assetUtxos: UnspentOutput[];
@@ -314,26 +295,22 @@ export async function dummySendInscriptions({
     feeRate,
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
-    enableRBF,
+    enableRBF
   });
 
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 
@@ -363,7 +340,7 @@ export async function dummySplitOrdUtxo({
   feeRate,
   outputValue,
   dump,
-  enableRBF,
+  enableRBF
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -381,26 +358,22 @@ export async function dummySplitOrdUtxo({
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
     enableRBF,
-    outputValue,
+    outputValue
   });
 
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 
@@ -422,7 +395,7 @@ export async function dummySplitOrdUtxo({
     inputCount,
     outputCount,
     feeRate: finalFeeRate,
-    splitedCount,
+    splitedCount
   };
 }
 
@@ -438,7 +411,7 @@ export async function dummySendAtomicalsFT({
   toAddress,
   dump,
   enableRBF,
-  sendAmount,
+  sendAmount
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -459,26 +432,22 @@ export async function dummySendAtomicalsFT({
     changeAssetAddress: assetWallet.address,
     feeRate,
     enableRBF,
-    sendAmount,
+    sendAmount
   });
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
 
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 
@@ -508,7 +477,7 @@ export async function dummySendAtomical({
   feeRate,
   toAddress,
   dump,
-  enableRBF,
+  enableRBF
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -526,26 +495,22 @@ export async function dummySendAtomical({
     feeRate,
     networkType: btcWallet.networkType,
     changeAddress: btcWallet.address,
-    enableRBF,
+    enableRBF
   });
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
 
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 
@@ -575,7 +540,7 @@ export async function dummySendRunes({
   enableRBF,
   runeid,
   runeAmount,
-  outputValue,
+  outputValue
 }: {
   assetWallet: LocalWallet;
   assetUtxo: UnspentOutput;
@@ -600,26 +565,22 @@ export async function dummySendRunes({
     enableRBF,
     runeid,
     runeAmount,
-    outputValue,
+    outputValue
   });
-  const btcToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === btcWallet.pubkey
-  );
+  const btcToSignInputs = toSignInputs.filter((v) => v.publicKey === btcWallet.pubkey);
   if (btcToSignInputs.length > 0) {
     await btcWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: btcToSignInputs,
+      toSignInputs: btcToSignInputs
     });
   }
 
-  const assetToSignInputs = toSignInputs.filter(
-    (v) => v.publicKey === assetWallet.pubkey
-  );
+  const assetToSignInputs = toSignInputs.filter((v) => v.publicKey === assetWallet.pubkey);
 
   if (assetToSignInputs.length > 0) {
     await assetWallet.signPsbt(psbt, {
       autoFinalized: false,
-      toSignInputs: assetToSignInputs,
+      toSignInputs: assetToSignInputs
     });
   }
 

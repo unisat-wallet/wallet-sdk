@@ -1,9 +1,9 @@
-import { bitcoin } from "../bitcoin-core";
+import { bitcoin } from '../bitcoin-core';
 
 export enum NetworkType {
   MAINNET,
   TESTNET,
-  REGTEST,
+  REGTEST
 }
 
 /**
