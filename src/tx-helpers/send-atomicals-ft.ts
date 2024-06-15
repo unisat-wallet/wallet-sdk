@@ -43,7 +43,19 @@ export async function sendAtomicalsFT({
 
   const toSignInputs: ToSignInput[] = [];
 
-  const totalInputFTAmount = assetUtxos.reduce((acc, v) => acc + v.satoshis, 0);
+  let totalInputFTAmount = 0;
+  assetUtxos.forEach((v) => {
+    if (v.atomicals.length > 1) {
+      throw new WalletUtilsError(ErrorCodes.ONLY_ONE_ARC20_CAN_BE_SENT);
+    }
+    v.atomicals.forEach((w) => {
+      if (!w.atomicalValue) {
+        w.atomicalValue = v.satoshis;
+      }
+      totalInputFTAmount += w.atomicalValue;
+    });
+  });
+
   if (sendAmount > totalInputFTAmount) {
     throw new WalletUtilsError(ErrorCodes.INSUFFICIENT_ASSET_UTXO);
   }

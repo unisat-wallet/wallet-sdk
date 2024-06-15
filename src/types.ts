@@ -43,6 +43,7 @@ export interface UnspentOutput {
     atomicalNumber: number;
     type: 'FT' | 'NFT';
     ticker?: string;
+    atomicalValue?: number;
   }[];
   runes?: {
     runeid: string;

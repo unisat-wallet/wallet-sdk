@@ -23,6 +23,7 @@ export function genDummyUtxos(
       atomicalNumber: number;
       type: 'NFT' | 'FT';
       ticker?: string;
+      atomicalValue: number;
     }[];
   }[]
 ) {
@@ -44,6 +45,7 @@ export function genDummyUtxo(
       atomicalNumber: number;
       type: 'NFT' | 'FT';
       ticker?: string;
+      atomicalValue?: number;
     }[];
     runes?: {
       runeid: string;
@@ -69,17 +71,22 @@ export function genDummyUtxo(
 /**
  * generate a dummy atomical ft
  */
-export function genDummyAtomicalsFT(ticker = 'atom'): {
+export function genDummyAtomicalsFT(
+  ticker: string,
+  atomicalValue: number
+): {
   atomicalId: string;
   atomicalNumber: number;
   type: 'NFT' | 'FT';
   ticker: string;
+  atomicalValue: number;
 } {
   return {
     atomicalId: ticker + '_id',
     atomicalNumber: 0,
     type: 'FT',
-    ticker
+    ticker,
+    atomicalValue
   };
 }
 

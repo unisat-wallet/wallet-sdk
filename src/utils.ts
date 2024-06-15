@@ -59,3 +59,9 @@ export function amountToSaothis(val: any) {
   const num = new BigNumber(val);
   return num.multipliedBy(100000000).toNumber();
 }
+
+export function shortAddress(address?: string, len = 5) {
+  if (!address) return '';
+  if (address.length <= len * 2) return address;
+  return address.slice(0, len) + '...' + address.slice(address.length - len);
+}

@@ -35,7 +35,8 @@ describe('utxo', () => {
         atomicalId: '',
         atomicalNumber: 100,
         type: 'FT',
-        ticker: 'atom'
+        ticker: 'atom',
+        atomicalValue: 1000
       }
     ]
   };
@@ -52,7 +53,8 @@ describe('utxo', () => {
       {
         atomicalId: '',
         atomicalNumber: 100,
-        type: 'NFT'
+        type: 'NFT',
+        atomicalValue: 1000
       }
     ]
   };

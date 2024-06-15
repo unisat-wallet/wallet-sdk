@@ -18,7 +18,7 @@ module.exports = {
     '@typescript-eslint/ban-types': 'off',
     'no-empty': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
-    '@typescript-eslint/no-floating-promises': ['error'],
+    '@typescript-eslint/no-floating-promises': 'off',
     'prettier/prettier': 'error'
   }
 };
