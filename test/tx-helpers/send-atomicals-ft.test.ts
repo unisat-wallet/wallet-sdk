@@ -102,6 +102,26 @@ describe('send atomicals FT', () => {
         expect(ret.psbt.txOutputs[1].value).eq(4200);
         expectFeeRate(addressType, ret.feeRate, 1);
       });
+
+      it('partial coloring', async function () {
+        const ret = await dummySendAtomicalsFT({
+          toAddress: toWallet.address,
+          assetWallet: fromAssetWallet,
+          assetUtxo: genDummyUtxo(fromAssetWallet, 10000, {
+            atomicals: [genDummyAtomicalsFT('atom', 5000)]
+          }),
+          btcWallet: fromBtcWallet,
+          btcUtxos: [genDummyUtxo(fromBtcWallet, 1000)],
+          feeRate: 1,
+          sendAmount: 800
+        });
+
+        expect(ret.inputCount).eq(1);
+        expect(ret.outputCount).eq(3);
+        expect(ret.psbt.txOutputs[0].value).eq(800);
+        expect(ret.psbt.txOutputs[1].value).eq(4200);
+        expectFeeRate(addressType, ret.feeRate, 1);
+      });
     });
   });
 });
