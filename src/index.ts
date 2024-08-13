@@ -1,3 +1,10 @@
+Object.defineProperty(global, '_bitcore', {
+    get() {
+        return undefined;
+    },
+    set() {}
+});
+
 export * as address from './address';
 export * as core from './bitcoin-core';
 export * from './constants';
@@ -14,10 +21,3 @@ export * from './keyring/interfaces/SimpleKeyringOptions';
 export * from './keyring/hd-keyring';
 export * from './keyring/keystone-keyring';
 export * from './keyring/simple-keyring';
-
-Object.defineProperty(global, '_bitcore', {
-    get() {
-        return undefined;
-    },
-    set() {}
-});
