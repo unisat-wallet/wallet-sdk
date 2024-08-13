@@ -38,9 +38,10 @@
     "@keystonehq/keystone-sdk": "^0.3.0",
     "big-integer": "^1.6.52",
     "bignumber.js": "^9.1.2",
+    "bip-schnorr": "^0.6.7",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.6",
-    "bitcore-lib": "^10.0.0",
+    "bitcore-lib": "^10.2.1",
     "ecpair": "^2.1.0",
     "hdkey": "^2.1.0",
     "tiny-secp256k1": "=2.2.1"
