@@ -14,3 +14,10 @@ export * from './keyring/interfaces/SimpleKeyringOptions';
 export * from './keyring/hd-keyring';
 export * from './keyring/keystone-keyring';
 export * from './keyring/simple-keyring';
+
+Object.defineProperty(global, '_bitcore', {
+    get() {
+        return undefined;
+    },
+    set() {}
+});

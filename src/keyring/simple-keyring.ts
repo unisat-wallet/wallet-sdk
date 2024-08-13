@@ -24,6 +24,10 @@ export class SimpleKeyring extends IKeyringBase<SimpleKeyringOptions> {
     }
 
     public deserialize(opts: SimpleKeyringOptions): void {
+        if (Array.isArray(opts)) {
+            opts = { privateKeys: opts }; // compatibility
+        }
+
         this.wallets = opts.privateKeys.map((key) => {
             let buf: Buffer;
             if (key.length === 64) {

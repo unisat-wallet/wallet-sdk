@@ -1,3 +1,10 @@
+Object.defineProperty(global, '_bitcore', {
+    get() {
+        return undefined;
+    },
+    set() {}
+});
+
 import * as bip39 from 'bip39';
 import bitcore from 'bitcore-lib';
 import hdkey from 'hdkey';
