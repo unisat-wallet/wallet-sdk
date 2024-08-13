@@ -37,6 +37,8 @@ export interface DeserializeOptionKeystone extends DeserializeOptionBase {
 export type KeyringOptions = SimpleKeyringOptions | DeserializeOption | DeserializeOptionKeystone;
 
 export abstract class IKeyringBase extends EventEmitter {
+    static type = '';
+    
     protected wallets: ECPairInterface[] = [];
 
     protected constructor(public readonly network: Network = bitcoin.networks.bitcoin) {
