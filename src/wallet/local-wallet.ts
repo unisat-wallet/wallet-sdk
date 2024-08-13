@@ -51,15 +51,13 @@ export class LocalWallet implements AbstractWallet {
         const _wallet = keyring.wallets[0];
         _wallet.network = toPsbtNetwork(networkType);
 
-        const wallet = new LocalWallet(keyring.wallets[0].toWIF(), addressType, networkType);
-        return wallet;
+        return new LocalWallet(keyring.wallets[0].toWIF(), addressType, networkType);
     }
 
     static fromRandom(addressType: AddressType = AddressType.P2WPKH, networkType: NetworkType = NetworkType.MAINNET) {
         const network = toPsbtNetwork(networkType);
         const ecpair = ECPair.makeRandom({ network });
-        const wallet = new LocalWallet(ecpair.toWIF(), addressType, networkType);
-        return wallet;
+        return new LocalWallet(ecpair.toWIF(), addressType, networkType);
     }
 
     getNetworkType() {
@@ -94,7 +92,7 @@ export class LocalWallet implements AbstractWallet {
             }
         });
 
-        psbt = await this.keyring.signTransaction(psbt, _inputs);
+        psbt = this.keyring.signTransaction(psbt, _inputs);
         if (_opts.autoFinalized) {
             _inputs.forEach((v) => {
                 // psbt.validateSignaturesOfInput(v.index, validator);
@@ -104,8 +102,8 @@ export class LocalWallet implements AbstractWallet {
         return psbt;
     }
 
-    async getPublicKey(): Promise<string> {
-        const pubkeys = await this.keyring.getAccounts();
+    getPublicKey(): string {
+        const pubkeys = this.keyring.getAccounts();
         return pubkeys[0];
     }
 
@@ -118,19 +116,19 @@ export class LocalWallet implements AbstractWallet {
                 wallet: this
             });
         } else {
-            const pubkey = await this.getPublicKey();
-            return await this.keyring.signMessage(pubkey, text);
+            const pubkey = this.getPublicKey();
+            return this.keyring.signMessage(pubkey, text);
         }
     }
 
     async signData(data: string, type: 'ecdsa' | 'schnorr' = 'ecdsa') {
-        const pubkey = await this.getPublicKey();
-        return await this.keyring.signData(pubkey, data, type);
+        const pubkey = this.getPublicKey();
+        return this.keyring.signData(pubkey, data, type);
     }
 
     private async formatOptionsToSignInputs(_psbt: string | bitcoin.Psbt, options?: SignPsbtOptions) {
         const accountAddress = this.address;
-        const accountPubkey = await this.getPublicKey();
+        const accountPubkey = this.getPublicKey();
 
         let toSignInputs: ToSignInput[] = [];
         if (options && options.toSignInputs) {

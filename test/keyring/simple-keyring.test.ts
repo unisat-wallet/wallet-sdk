@@ -155,7 +155,7 @@ describe('bitcoin-simple-keyring', () => {
                 err = e;
             }
 
-            expect(err?.message).eq('Expected Hash');
+            expect(err?.message).eq('Expected Scalar');
         });
     });
 
