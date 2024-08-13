@@ -1,6 +1,6 @@
 import { Network, networks, Psbt } from 'bitcoinjs-lib';
 import { EventEmitter } from 'events';
-import { ECPairInterface } from '../../bitcoin-core';
+import { ECPairInterface } from 'ecpair';
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371';
 import { tweakSigner } from '../../utils';
 import { signMessageOfDeterministicECDSA, verifyMessageOfECDSA } from '../../message';
