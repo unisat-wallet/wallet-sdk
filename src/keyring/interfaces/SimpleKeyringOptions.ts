@@ -1,6 +1,6 @@
-import { Network } from 'bitcoinjs-lib';
+import { Network, networks, Psbt } from 'bitcoinjs-lib';
 import { EventEmitter } from 'events';
-import { bitcoin, ECPairInterface } from '../../bitcoin-core';
+import { ECPairInterface } from '../../bitcoin-core';
 import { isTaprootInput } from 'bitcoinjs-lib/src/psbt/bip371';
 import { tweakSigner } from '../../utils';
 import { signMessageOfDeterministicECDSA, verifyMessageOfECDSA } from '../../message';
@@ -42,7 +42,7 @@ export abstract class IKeyringBase<T extends BaseKeyringOptions> extends EventEm
 
     protected wallets: ECPairInterface[] = [];
 
-    protected constructor(public readonly network: Network = bitcoin.networks.bitcoin) {
+    protected constructor(public readonly network: Network = networks.bitcoin) {
         super();
     }
 
@@ -89,7 +89,7 @@ export abstract class IKeyringBase<T extends BaseKeyringOptions> extends EventEm
     }
 
     public signTransaction(
-        psbt: bitcoin.Psbt,
+        psbt: Psbt,
         inputs: {
             index: number;
             publicKey: string;
@@ -97,7 +97,7 @@ export abstract class IKeyringBase<T extends BaseKeyringOptions> extends EventEm
             disableTweakSigner?: boolean;
         }[],
         opts?: any
-    ): bitcoin.Psbt {
+    ): Psbt {
         inputs.forEach((input) => {
             const keyPair = this._getPrivateKeyFor(input.publicKey);
             if (isTaprootInput(psbt.data.inputs[input.index]) && !input.disableTweakSigner) {

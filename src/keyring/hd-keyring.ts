@@ -1,8 +1,9 @@
 import * as bip39 from 'bip39';
 import bitcore from 'bitcore-lib';
 import hdkey from 'hdkey';
-import { bitcoin, ECPair, ECPairInterface } from '../bitcoin-core';
+import { ECPair, ECPairInterface } from '../bitcoin-core';
 import { DeserializeOption, IKeyringBase } from './interfaces/SimpleKeyringOptions';
+import { networks } from 'bitcoinjs-lib';
 
 const hdPathString = "m/44'/0'/0'/0";
 const type = 'HD Key Tree';
@@ -27,7 +28,7 @@ export class HdKeyring extends IKeyringBase<DeserializeOption> {
 
     /* PUBLIC METHODS */
     constructor(opts?: DeserializeOption) {
-        super(opts?.network || bitcoin.networks.bitcoin);
+        super(opts?.network || networks.bitcoin);
 
         if (opts) {
             this.deserialize(opts);

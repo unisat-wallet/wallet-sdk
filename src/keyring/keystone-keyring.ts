@@ -1,10 +1,9 @@
 import KeystoneSDK, { KeystoneBitcoinSDK, UR } from '@keystonehq/keystone-sdk';
 import { uuid } from '@keystonehq/keystone-sdk/dist/utils';
-import { Psbt } from 'bitcoinjs-lib';
+import { networks, Psbt } from 'bitcoinjs-lib';
 import bitcore from 'bitcore-lib';
 import { verifyMessageOfECDSA } from '../message';
 import { DeserializeOptionKeystone, IKeyringBase, KeystoneKey } from './interfaces/SimpleKeyringOptions';
-import { bitcoin } from '../bitcoin-core';
 
 interface Wallet {
     index: number;
@@ -29,7 +28,7 @@ export class KeystoneKeyring extends IKeyringBase<DeserializeOptionKeystone> {
     origin = 'UniSat Wallet';
 
     constructor(opts?: DeserializeOptionKeystone) {
-        super(opts?.network || bitcoin.networks.bitcoin);
+        super(opts?.network || networks.bitcoin);
 
         if (opts) {
             this.deserialize(opts);

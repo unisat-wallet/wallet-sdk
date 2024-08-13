@@ -1,6 +1,7 @@
 import { decode } from 'bs58check';
-import { bitcoin, ECPair, ECPairInterface } from '../bitcoin-core';
+import { ECPair, ECPairInterface } from '../bitcoin-core';
 import { IKeyringBase, SimpleKeyringOptions } from './interfaces/SimpleKeyringOptions';
+import { networks } from 'bitcoinjs-lib';
 
 const type = 'Simple Key Pair';
 
@@ -9,7 +10,7 @@ export class SimpleKeyring extends IKeyringBase<SimpleKeyringOptions> {
     type = type;
 
     constructor(opts?: SimpleKeyringOptions) {
-        super(opts?.network || bitcoin.networks.bitcoin);
+        super(opts?.network || networks.bitcoin);
 
         if (opts && opts.privateKeys) {
             this.deserialize(opts as SimpleKeyringOptions);
