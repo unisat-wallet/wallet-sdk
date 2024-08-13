@@ -38,7 +38,8 @@ export type KeyringOptions = SimpleKeyringOptions | DeserializeOption | Deserial
 
 export abstract class IKeyringBase extends EventEmitter {
     static type = '';
-    
+    public type = '';
+
     protected wallets: ECPairInterface[] = [];
 
     protected constructor(public readonly network: Network = bitcoin.networks.bitcoin) {
@@ -46,6 +47,8 @@ export abstract class IKeyringBase extends EventEmitter {
     }
 
     public abstract serialize(): unknown;
+
+    public abstract addAccounts(numberOfAccounts: number): string[];
 
     public abstract deserialize(opts?: BaseKeyringOptions): unknown;
 
@@ -72,6 +75,8 @@ export abstract class IKeyringBase extends EventEmitter {
             throw new Error('Not support type');
         }
     }
+
+    public abstract getAccounts(): string[];
 
     public signMessage(publicKey: string, text: string): string {
         const keyPair = this._getPrivateKeyFor(publicKey);

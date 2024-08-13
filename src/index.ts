@@ -8,4 +8,9 @@ export * as txHelpers from './tx-helpers';
 export * from './types';
 export * as utils from './utils';
 export * as wallet from './wallet';
+
+// Export with types.
 export * from './keyring/interfaces/SimpleKeyringOptions';
+export * from './keyring/hd-keyring';
+export * from './keyring/keystone-keyring';
+export * from './keyring/simple-keyring';

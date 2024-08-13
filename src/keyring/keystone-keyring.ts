@@ -97,10 +97,10 @@ export class KeystoneKeyring extends IKeyringBase {
         };
     }
 
-    async addAccounts(numberOfAccounts = 1) {
+    addAccounts(numberOfAccounts = 1): string[] {
         let count = numberOfAccounts;
         let i = 0;
-        const pubkeys = [];
+        const pubkeys: string[] = [];
 
         while (count) {
             if (this.activeIndexes.includes(i)) {
@@ -113,7 +113,7 @@ export class KeystoneKeyring extends IKeyringBase {
             }
         }
 
-        return Promise.resolve(pubkeys);
+        return pubkeys;
     }
 
     async addChangeAddressAccounts(numberOfAccounts = 1) {
@@ -135,7 +135,7 @@ export class KeystoneKeyring extends IKeyringBase {
         return Promise.resolve(pubkeys);
     }
 
-    async getAccounts() {
+    public getAccounts(): string[] {
         if (
             this.hdPath !== null &&
             this.hdPath !== undefined &&
@@ -269,7 +269,7 @@ export class KeystoneKeyring extends IKeyringBase {
         return accounts;
     }
 
-    changeHdPath(hdPath: string) {
+    public changeHdPath(hdPath: string): void {
         this.hdPath = hdPath;
 
         this.initRoot();
