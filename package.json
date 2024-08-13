@@ -1,6 +1,6 @@
 {
   "name": "@unisat/wallet-sdk",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "UniSat Wallet SDK",
   "keywords": [
     "bitcoin",
@@ -34,13 +34,14 @@
     "lint": "eslint ./src ./test"
   },
   "dependencies": {
-    "@bitcoinerlab/secp256k1": "^1.0.5",
+    "@bitcoinerlab/secp256k1": "^1.1.1",
     "@keystonehq/keystone-sdk": "^0.3.0",
     "big-integer": "^1.6.52",
     "bignumber.js": "^9.1.2",
+    "bip-schnorr": "^0.6.7",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.6",
-    "bitcore-lib": "^10.0.0",
+    "bitcore-lib": "^10.2.1",
     "ecpair": "^2.1.0",
     "hdkey": "^2.1.0",
     "tiny-secp256k1": "=2.2.1"
@@ -50,7 +51,9 @@
     "@babel/plugin-transform-runtime": "^7.16.5",
     "@babel/preset-env": "^7.16.5",
     "@babel/preset-typescript": "^7.16.5",
+    "@types/bitcore-lib": "^0.15.6",
     "@types/chai": "^4.2.20",
+    "@types/hdkey": "^2.0.3",
     "@types/mocha": "^8.2.2",
     "@types/node": "^16.11.10",
     "@typescript-eslint/eslint-plugin": "^5.59.1",
@@ -70,7 +73,7 @@
     "gulp-babel": "^8.0.0",
     "gulp-typescript": "*",
     "https-browserify": "^1.0.0",
-    "mocha": "^9.0.2",
+    "mocha": "10.1.0",
     "prettier": "^3.2.5",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
