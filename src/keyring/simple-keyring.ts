@@ -4,7 +4,7 @@ import { IKeyringBase, SimpleKeyringOptions } from './interfaces/SimpleKeyringOp
 
 const type = 'Simple Key Pair';
 
-export class SimpleKeyring extends IKeyringBase {
+export class SimpleKeyring extends IKeyringBase<SimpleKeyringOptions> {
     static type = type;
     type = type;
 
@@ -16,8 +16,11 @@ export class SimpleKeyring extends IKeyringBase {
         }
     }
 
-    public serialize(): string[] {
-        return this.wallets.map((wallet) => wallet.privateKey.toString('hex'));
+    public serialize(): SimpleKeyringOptions {
+        return {
+            privateKeys: this.wallets.map((wallet) => wallet.privateKey.toString('hex')),
+            network: this.network
+        };
     }
 
     public deserialize(opts: SimpleKeyringOptions): void {

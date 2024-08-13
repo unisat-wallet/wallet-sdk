@@ -26,7 +26,7 @@ describe('bitcoin-simple-keyring', () => {
 
     describe('#serialize empty wallets.', function () {
         it('serializes an empty array', async function () {
-            const output = keyring.serialize();
+            const output = keyring.serialize().privateKeys;
             expect(output.length == 0).to.be.true;
         });
     });
@@ -34,7 +34,7 @@ describe('bitcoin-simple-keyring', () => {
     describe('#deserialize a private key', function () {
         it('serializes what it deserializes', async function () {
             keyring.deserialize({ privateKeys: [testAccount.key] });
-            const serialized = keyring.serialize();
+            const serialized = keyring.serialize().privateKeys;
             expect(serialized).length(1);
             expect(serialized[0]).eq(testAccount.key);
         });
@@ -52,7 +52,7 @@ describe('bitcoin-simple-keyring', () => {
         describe('with no arguments', function () {
             it('creates a single wallet', async function () {
                 keyring.addAccounts();
-                const serializedKeyring = keyring.serialize();
+                const serializedKeyring = keyring.serialize().privateKeys;
                 expect(serializedKeyring).length(1);
             });
         });
@@ -60,7 +60,7 @@ describe('bitcoin-simple-keyring', () => {
         describe('with a numeric argument', function () {
             it('creates that number of wallets', async function () {
                 keyring.addAccounts(3);
-                const serializedKeyring = keyring.serialize();
+                const serializedKeyring = keyring.serialize().privateKeys;
                 expect(serializedKeyring).length(3);
             });
         });

@@ -36,7 +36,7 @@ export interface DeserializeOptionKeystone extends DeserializeOptionBase {
 
 export type KeyringOptions = SimpleKeyringOptions | DeserializeOption | DeserializeOptionKeystone;
 
-export abstract class IKeyringBase extends EventEmitter {
+export abstract class IKeyringBase<T extends BaseKeyringOptions> extends EventEmitter {
     static type = '';
     public type = '';
 
@@ -46,11 +46,11 @@ export abstract class IKeyringBase extends EventEmitter {
         super();
     }
 
-    public abstract serialize(): unknown;
+    public abstract serialize(): T;
 
     public abstract addAccounts(numberOfAccounts: number): string[];
 
-    public abstract deserialize(opts?: BaseKeyringOptions): unknown;
+    public abstract deserialize(opts?: T): unknown;
 
     public removeAccount(publicKey: string): void {
         if (!this.wallets.map((wallet) => wallet.publicKey.toString('hex')).includes(publicKey)) {

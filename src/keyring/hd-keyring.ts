@@ -7,7 +7,7 @@ import { DeserializeOption, IKeyringBase } from './interfaces/SimpleKeyringOptio
 const hdPathString = "m/44'/0'/0'/0";
 const type = 'HD Key Tree';
 
-export class HdKeyring extends IKeyringBase {
+export class HdKeyring extends IKeyringBase<DeserializeOption> {
     static type = type;
 
     type = type;

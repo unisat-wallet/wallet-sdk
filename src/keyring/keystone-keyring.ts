@@ -14,7 +14,7 @@ interface Wallet {
 
 const type = 'Keystone';
 
-export class KeystoneKeyring extends IKeyringBase {
+export class KeystoneKeyring extends IKeyringBase<DeserializeOptionKeystone> {
     static type = type;
     type = type;
     mfp = '';
