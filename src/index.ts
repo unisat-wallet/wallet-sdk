@@ -8,3 +8,4 @@ export * as txHelpers from './tx-helpers';
 export * from './types';
 export * as utils from './utils';
 export * as wallet from './wallet';
+export * from './keyring/interfaces/SimpleKeyringOptions';
