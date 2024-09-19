@@ -3,6 +3,7 @@ import { decode } from 'bs58check';
 import { EventEmitter } from 'events';
 import { ECPair, ECPairInterface, bitcoin } from '../bitcoin-core';
 import { signMessageOfDeterministicECDSA, verifyMessageOfECDSA } from '../message';
+import { ToSignInput } from '../types';
 import { tweakSigner } from '../utils';
 
 const type = 'Simple Key Pair';
@@ -54,21 +55,15 @@ export class SimpleKeyring extends EventEmitter {
     return this.wallets.map(({ publicKey }) => publicKey.toString('hex'));
   }
 
-  async signTransaction(
-    psbt: bitcoin.Psbt,
-    inputs: {
-      index: number;
-      publicKey: string;
-      sighashTypes?: number[];
-      disableTweakSigner?: boolean;
-    }[],
-    opts?: any
-  ) {
+  async signTransaction(psbt: bitcoin.Psbt, inputs: ToSignInput[], opts?: any) {
     inputs.forEach((input) => {
       const keyPair = this._getPrivateKeyFor(input.publicKey);
-      if (isTaprootInput(psbt.data.inputs[input.index]) && !input.disableTweakSigner) {
-        const signer = tweakSigner(keyPair, opts);
-        psbt.signInput(input.index, signer, input.sighashTypes);
+      if (isTaprootInput(psbt.data.inputs[input.index])) {
+        let signer: bitcoin.Signer = keyPair;
+        if (!input.disableTweakSigner) {
+          signer = tweakSigner(keyPair, opts);
+        }
+        psbt.signTaprootInput(input.index, signer, input.tapLeafHashToSign, input.sighashTypes);
       } else {
         const signer = keyPair;
         psbt.signInput(input.index, signer, input.sighashTypes);

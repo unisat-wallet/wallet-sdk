@@ -99,7 +99,8 @@ export class LocalWallet implements AbstractWallet {
           index,
           publicKey: accountPubkey,
           sighashTypes,
-          disableTweakSigner: input.disableTweakSigner
+          disableTweakSigner: input.disableTweakSigner,
+          tapLeafHashToSign: input.tapLeafHashToSign
         };
       });
     } else {

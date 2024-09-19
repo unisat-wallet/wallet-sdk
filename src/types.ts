@@ -2,6 +2,7 @@ interface BaseUserToSignInput {
   index: number;
   sighashTypes?: number[] | undefined;
   disableTweakSigner?: boolean;
+  tapLeafHashToSign?: Buffer;
 }
 
 export interface AddressUserToSignInput extends BaseUserToSignInput {
@@ -24,6 +25,7 @@ export interface ToSignInput {
   publicKey: string; // public key in hex format
   sighashTypes?: number[]; // sighash types to sign
   disableTweakSigner?: boolean; // whether to use taproot tweak signer, default is true
+  tapLeafHashToSign?: Buffer;
 }
 
 export interface UnspentOutput {
