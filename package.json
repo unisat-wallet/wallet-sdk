@@ -1,6 +1,6 @@
 {
   "name": "@unisat/wallet-sdk",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "UniSat Wallet SDK",
   "keywords": [
     "bitcoin",
@@ -31,6 +31,7 @@
     "build:typed": "tsc --declaration --emitDeclarationOnly --noEmit false",
     "test": "mocha -r ts-node/register test/**/*.ts --timeout 300000",
     "prepublishOnly": "npm run build",
+    "postinstall": "patch-package",
     "lint": "eslint ./src ./test"
   },
   "dependencies": {
@@ -71,6 +72,8 @@
     "gulp-typescript": "*",
     "https-browserify": "^1.0.0",
     "mocha": "^9.0.2",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.2.5",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
