@@ -75,11 +75,7 @@ export function isValidAddress(address: string, networkType: NetworkType = Netwo
   } catch (e) {
     error = e;
   }
-  if (error) {
-    return false;
-  } else {
-    return true;
-  }
+  return !error;
 }
 
 export function decodeAddress(address: string) {
