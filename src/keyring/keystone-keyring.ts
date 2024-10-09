@@ -15,6 +15,7 @@ interface DeserializeOption {
   keys: KeystoneKey[];
   hdPath?: string;
   activeIndexes?: number[];
+  connectionType?: 'USB' | 'QR';
 }
 
 interface Wallet {
@@ -25,6 +26,8 @@ interface Wallet {
 
 const type = 'Keystone';
 
+const DEFAULT_CONNECTION_TYPE = 'QR';
+
 export class KeystoneKeyring extends EventEmitter {
   static type = type;
   type = type;
@@ -33,6 +36,7 @@ export class KeystoneKeyring extends EventEmitter {
   hdPath?: string;
   activeIndexes?: number[] = [];
   root: bitcore.HDPublicKey = null;
+  connectionType?: 'USB' | 'QR' = 'QR';
 
   page = 0;
   perPage = 5;
@@ -46,7 +50,7 @@ export class KeystoneKeyring extends EventEmitter {
     }
   }
 
-  async initFromUR(type: string, cbor: string) {
+  async initFromUR(type: string, cbor: string, connectionType?:'USB' | 'QR') {
     const keystoneSDK = new KeystoneSDK({
       origin: this.origin
     });
@@ -56,7 +60,8 @@ export class KeystoneKeyring extends EventEmitter {
       keys: account.keys.map((k) => ({
         path: k.path,
         extendedPublicKey: k.extendedPublicKey
-      }))
+      })),
+      connectionType: connectionType ?? DEFAULT_CONNECTION_TYPE
     });
   }
 
@@ -78,6 +83,10 @@ export class KeystoneKeyring extends EventEmitter {
     return "m/44'/0'/0'/0";
   }
 
+  getConnectionType() {
+    return this.connectionType ?? DEFAULT_CONNECTION_TYPE;
+  }
+
   initRoot() {
     this.root = this.getHDPublicKey(this.hdPath ?? this.getDefaultHdPath());
   }
@@ -87,6 +96,7 @@ export class KeystoneKeyring extends EventEmitter {
     this.keys = opts.keys;
     this.hdPath = opts.hdPath ?? this.getDefaultHdPath();
     this.activeIndexes = opts.activeIndexes ? [...opts.activeIndexes] : [];
+    this.connectionType = opts.connectionType ?? DEFAULT_CONNECTION_TYPE;
     this.initRoot();
     if (
       opts.hdPath !== null &&
@@ -103,7 +113,8 @@ export class KeystoneKeyring extends EventEmitter {
       mfp: this.mfp,
       keys: this.keys,
       hdPath: this.hdPath,
-      activeIndexes: this.activeIndexes
+      activeIndexes: this.activeIndexes,
+      connectionType: this.connectionType
     };
   }
 
