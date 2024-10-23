@@ -60,12 +60,26 @@ export class SimpleKeyring extends EventEmitter {
       const keyPair = this._getPrivateKeyFor(input.publicKey);
       if (isTaprootInput(psbt.data.inputs[input.index])) {
         let signer: bitcoin.Signer = keyPair;
-        if (!input.disableTweakSigner) {
+        let tweak = true; // default to use tweaked signer
+        if (typeof input.useTweakedSigner === 'boolean') {
+          tweak = input.useTweakedSigner;
+        } else if (typeof input.disableTweakSigner === 'boolean') {
+          tweak = !input.disableTweakSigner;
+        }
+
+        if (tweak) {
           signer = tweakSigner(keyPair, opts);
         }
         psbt.signTaprootInput(input.index, signer, input.tapLeafHashToSign, input.sighashTypes);
       } else {
-        const signer = keyPair;
+        let signer: bitcoin.Signer = keyPair;
+        let tweak = false; // default not to use tweaked signer
+        if (typeof input.useTweakedSigner === 'boolean') {
+          tweak = input.useTweakedSigner;
+        }
+        if (tweak) {
+          signer = tweakSigner(keyPair, opts);
+        }
         psbt.signInput(input.index, signer, input.sighashTypes);
       }
     });

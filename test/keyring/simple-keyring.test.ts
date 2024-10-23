@@ -1,8 +1,8 @@
 import { sha256 } from 'bitcoinjs-lib/src/crypto';
 import { expect } from 'chai';
-import { bitcoin } from '../../src/bitcoin-core';
+import { bitcoin, ECPair, ECPairInterface } from '../../src/bitcoin-core';
 import { SimpleKeyring, verifySignData } from '../../src/keyring';
-import { toXOnly } from '../../src/utils';
+import { toXOnly, tweakSigner, validator } from '../../src/utils';
 
 const TYPE_STR = 'Simple Key Pair';
 
@@ -321,6 +321,62 @@ describe('bitcoin-simple-keyring', () => {
       psbt.finalizeAllInputs();
       psbt.extractTransaction();
       expect(psbt.getFee() == 500).to.be.true;
+    });
+
+    it('disableTweakSignerForLegacyInput', async function () {
+      const network = bitcoin.networks.bitcoin;
+
+      const originKeyring = new SimpleKeyring([testAccount.key]);
+      await originKeyring.addAccounts(1);
+      const accounts = await originKeyring.getAccounts();
+      const originPubkey = accounts[0];
+
+      const keyPair = ECPair.fromPrivateKey(Buffer.from(testAccount.key, 'hex'), { network });
+      const tweakedKeyPair = tweakSigner(keyPair, { network }) as ECPairInterface;
+      const tweakedKeyring = new SimpleKeyring([tweakedKeyPair.privateKey.toString('hex')]);
+      await tweakedKeyring.addAccounts(1);
+      const tweakedAccounts = await tweakedKeyring.getAccounts();
+      const tweakedPubkey = tweakedAccounts[0];
+
+      const payment = bitcoin.payments.p2wpkh({
+        pubkey: Buffer.from(tweakedPubkey, 'hex'),
+        network
+      });
+
+      const prevoutHash = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex');
+      const value = 10000;
+      const prevoutIndex = 0xffffffff;
+      const sequence = 0;
+      const txToSpend = new bitcoin.Transaction();
+      txToSpend.version = 0;
+      txToSpend.addInput(prevoutHash, prevoutIndex, sequence);
+      txToSpend.addOutput(payment.output!, value);
+
+      const psbt = new bitcoin.Psbt({ network });
+      psbt.addInput({
+        hash: txToSpend.getHash(),
+        index: 0,
+        sequence: 0,
+        witnessUtxo: {
+          script: payment.output!,
+          value
+        }
+      });
+      psbt.addOutput({
+        address: payment.address!,
+        value: value - 500
+      });
+
+      await tweakedKeyring.signTransaction(psbt, [{ index: 0, publicKey: tweakedPubkey }], {
+        network: bitcoin.networks.bitcoin
+      });
+      expect(psbt.validateSignaturesOfAllInputs(validator)).to.be.true;
+      psbt.finalizeAllInputs();
+
+      await originKeyring.signTransaction(psbt, [{ index: 0, publicKey: originPubkey, useTweakedSigner: true }], {
+        network: bitcoin.networks.bitcoin
+      });
+      expect(psbt.validateSignaturesOfAllInputs(validator)).to.be.true;
     });
   });
 });

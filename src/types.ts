@@ -24,6 +24,10 @@ export interface ToSignInput {
   index: number; // index of input to sign
   publicKey: string; // public key in hex format
   sighashTypes?: number[]; // sighash types to sign
+
+  useTweakedSigner?: boolean; // whether to use tweak signer
+
+  // only for taproot input , deprecated
   disableTweakSigner?: boolean; // whether to use taproot tweak signer, default is true
   tapLeafHashToSign?: Buffer;
 }
