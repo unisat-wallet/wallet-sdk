@@ -1,6 +1,6 @@
 {
   "name": "@unisat/wallet-sdk",
-  "version": "1.7.5",
+  "version": "1.8.0",
   "description": "UniSat Wallet SDK",
   "keywords": [
     "bitcoin",
